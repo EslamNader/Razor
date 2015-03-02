@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Internal.Web.Utils;
 
 namespace Microsoft.AspNet.Razor.TagHelpers
@@ -29,15 +30,16 @@ namespace Microsoft.AspNet.Razor.TagHelpers
         /// <c>false</c> otherwise.</returns>
         /// <remarks>
         /// Determines equality based on <see cref="TagHelperDescriptor.TypeName"/>,
-        /// <see cref="TagHelperDescriptor.AssemblyName"/>, <see cref="TagHelperDescriptor.TagName"/> and
-        /// <see cref="TagHelperDescriptor.Prefix"/>.
+        /// <see cref="TagHelperDescriptor.AssemblyName"/>, <see cref="TagHelperDescriptor.TagName"/>,
+        /// <see cref="TagHelperDescriptor.Prefix"/> and <see cref="TagHelperDescriptor.RequiredAttributes"/>.
         /// </remarks>
         public bool Equals(TagHelperDescriptor descriptorX, TagHelperDescriptor descriptorY)
         {
             return string.Equals(descriptorX.TypeName, descriptorY.TypeName, StringComparison.Ordinal) &&
                    string.Equals(descriptorX.TagName, descriptorY.TagName, StringComparison.OrdinalIgnoreCase) &&
                    string.Equals(descriptorX.Prefix, descriptorY.Prefix, StringComparison.OrdinalIgnoreCase) &&
-                   string.Equals(descriptorX.AssemblyName, descriptorY.AssemblyName, StringComparison.Ordinal);
+                   string.Equals(descriptorX.AssemblyName, descriptorY.AssemblyName, StringComparison.Ordinal) &&
+                   Enumerable.SequenceEqual(descriptorX.RequiredAttributes, descriptorY.RequiredAttributes);
         }
 
         /// <summary>
@@ -47,11 +49,13 @@ namespace Microsoft.AspNet.Razor.TagHelpers
         /// <returns>An <see cref="int"/> that uniquely identifies the given <paramref name="descriptor"/>.</returns>
         public int GetHashCode(TagHelperDescriptor descriptor)
         {
-            return HashCodeCombiner.Start()
-                                   .Add(descriptor.TagName, StringComparer.OrdinalIgnoreCase)
-                                   .Add(descriptor.TypeName, StringComparer.Ordinal)
-                                   .Add(descriptor.AssemblyName, StringComparer.Ordinal)
-                                   .CombinedHash;
+            return HashCodeCombiner
+                .Start()
+                .Add(descriptor.TagName, StringComparer.OrdinalIgnoreCase)
+                .Add(descriptor.TypeName, StringComparer.Ordinal)
+                .Add(descriptor.AssemblyName, StringComparer.Ordinal)
+                .Add(descriptor.RequiredAttributes)
+                .CombinedHash;
         }
     }
 }

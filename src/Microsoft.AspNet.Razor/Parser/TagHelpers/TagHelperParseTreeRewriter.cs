@@ -14,14 +14,14 @@ namespace Microsoft.AspNet.Razor.Parser.TagHelpers.Internal
     public class TagHelperParseTreeRewriter : ISyntaxTreeRewriter
     {
         private TagHelperDescriptorProvider _provider;
-        private Stack<TagHelperBlockBuilder> _tagStack;
+        private Stack<TagHelperBlockTracker> _tagStack;
         private Stack<BlockBuilder> _blockStack;
         private BlockBuilder _currentBlock;
 
         public TagHelperParseTreeRewriter(TagHelperDescriptorProvider provider)
         {
             _provider = provider;
-            _tagStack = new Stack<TagHelperBlockBuilder>();
+            _tagStack = new Stack<TagHelperBlockTracker>();
             _blockStack = new Stack<BlockBuilder>();
         }
 
@@ -91,8 +91,6 @@ namespace Microsoft.AspNet.Razor.Parser.TagHelpers.Internal
 
         private bool TryRewriteTagHelper(Block tagBlock, RewritingContext context)
         {
-            // TODO: Fully handle malformed tags: https://github.com/aspnet/Razor/issues/104
-
             // Get tag name of the current block (doesn't matter if it's an end or start tag)
             var tagName = GetTagName(tagBlock);
 
@@ -104,22 +102,41 @@ namespace Microsoft.AspNet.Razor.Parser.TagHelpers.Internal
 
             var descriptors = Enumerable.Empty<TagHelperDescriptor>();
 
-            if (IsPotentialTagHelper(tagName, tagBlock))
-            {
-                descriptors = _provider.GetTagHelpers(tagName);
-            }
-
-            // If there aren't any TagHelperDescriptors registered then we aren't a TagHelper
-            if (!descriptors.Any())
+            if (!IsPotentialTagHelper(tagName, tagBlock))
             {
                 return false;
             }
 
+            var currentTagBlockTracker = _tagStack.Count > 0 ? _tagStack.Peek() : null;
+            var tagNameScope = currentTagBlockTracker?.Builder.TagName ?? string.Empty;
+
             if (!IsEndTag(tagBlock))
             {
-                // We're in a begin tag helper block
+                // We're in a begin tag block
 
-                var validTagStructure = ValidTagStructure(tagName, tagBlock, context);
+                var providedAttributes = GetAttributeNames(tagBlock);
+
+                descriptors = _provider.GetDescriptors(tagName, providedAttributes);
+
+                // If there aren't any TagHelperDescriptors registered then we aren't a TagHelper
+                if (!descriptors.Any())
+                {
+                    // If the current tag matches the current TagHelper scope it means the parent TagHelper matched
+                    // all the required attributes but the current one did not; therefore, we need to increment the 
+                    // AdditionalEndTagsRequired counter for current the TagHelperBlock so we don't end it too early.
+                    // ex: <myth req="..."><myth></myth></myth> We don't want the first myth to close on the inside
+                    // tag.
+                    if (string.Equals(tagNameScope, tagName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        currentTagBlockTracker.OpenMatchingTags++;
+                    }
+
+                    return false;
+                }
+
+                // We're in a begin TagHelper block.
+
+                var validTagStructure = ValidateTagStructure(tagName, tagBlock, context);
 
                 var builder = TagHelperBlockRewriter.Rewrite(tagName,
                                                              validTagStructure,
@@ -139,26 +156,39 @@ namespace Microsoft.AspNet.Razor.Parser.TagHelpers.Internal
             }
             else
             {
-                // We're in an end tag helper block.
+                // We're in an end tag block.
 
-                var tagNameScope = _tagStack.Count > 0 ? _tagStack.Peek().TagName : string.Empty;
-
-                // Validate that our end tag helper matches the currently scoped tag helper, if not we
-                // need to error.
+                // Validate that our end tag matches the currently scoped tag, if not we may need to error.
                 if (tagNameScope.Equals(tagName, StringComparison.OrdinalIgnoreCase))
                 {
-                    ValidTagStructure(tagName, tagBlock, context);
+                    // If there are additional end tags required before we can build our block it means we're in a
+                    // situation like this: <myth req="..."><myth></myth></myth> where we're at the inside </myth>.
+                    if (currentTagBlockTracker.OpenMatchingTags > 0)
+                    {
+                        currentTagBlockTracker.OpenMatchingTags--;
+
+                        return false;
+                    }
+
+                    ValidateTagStructure(tagName, tagBlock, context);
 
                     BuildCurrentlyTrackedTagHelperBlock();
                 }
                 else
                 {
+                    // If there are not TagHelperDescriptors associated with the end tag block that also have no 
+                    // required attributes then it means we can't be a TagHelper, bail out.
+                    if (!_provider.GetDescriptors(tagName, attributeNames: Enumerable.Empty<string>()).Any())
+                    {
+                        return false;
+                    }
+
                     // Current tag helper scope does not match the end tag. Attempt to recover the tag 
                     // helper by looking up the previous tag helper scopes for a matching tag. If we 
                     // can't recover it means there was no corresponding tag helper begin tag.
                     if (TryRecoverTagHelper(tagName, context))
                     {
-                        ValidTagStructure(tagName, tagBlock, context);
+                        ValidateTagStructure(tagName, tagBlock, context);
 
                         // Successfully recovered, move onto the next element.
                     }
@@ -178,24 +208,46 @@ namespace Microsoft.AspNet.Razor.Parser.TagHelpers.Internal
             return true;
         }
 
-        private static bool ValidTagStructure(string tagName, Block tag, RewritingContext context)
+        private IEnumerable<string> GetAttributeNames(Block tagBlock)
+        {
+            // Need to calculate how many children we should take that represent the attributes.
+            var childrenOffset = PartialTag(tagBlock) ? 1 : 2;
+            var attributeChildren = tagBlock.Children.Skip(1).Take(tagBlock.Children.Count() - childrenOffset);
+            var attributeNames = new List<string>();
+
+            foreach (var child in attributeChildren)
+            {
+                Span childSpan;
+
+                if (child.IsBlock)
+                {
+                    childSpan = ((Block)child).Children.FirstOrDefault() as Span;
+
+                    if (childSpan == null)
+                    {
+                        continue;
+                    }
+                }
+                else
+                {
+                    childSpan = child as Span;
+                }
+
+                var attributeName = childSpan
+                    .Content
+                    .Split(separator: new[] { '=' }, count: 2)[0]
+                    .Trim();
+
+                attributeNames.Add(attributeName);
+            }
+
+            return attributeNames;
+        }
+
+        private static bool ValidateTagStructure(string tagName, Block tag, RewritingContext context)
         {
             // We assume an invalid structure until we verify that the tag meets all of our "valid structure" criteria.
-            var invalidStructure = true;
-
-            // No need to validate the tag end because in order to be a tag block it must start with '<'.
-            var tagEnd = tag.Children.Last() as Span;
-
-            // If our tag end is not a markup span it means it's some sort of code SyntaxTreeNode (not a valid format)
-            if (tagEnd != null && tagEnd.Kind == SpanKind.Markup)
-            {
-                var endSymbol = tagEnd.Symbols.LastOrDefault() as HtmlSymbol;
-
-                if (endSymbol != null && endSymbol.Type == HtmlSymbolType.CloseAngle)
-                {
-                    invalidStructure = false;
-                }
-            }
+            var invalidStructure = PartialTag(tag);
 
             if (invalidStructure)
             {
@@ -205,6 +257,25 @@ namespace Microsoft.AspNet.Razor.Parser.TagHelpers.Internal
             }
 
             return !invalidStructure;
+        }
+
+        private static bool PartialTag(Block tagBlock)
+        {
+            // No need to validate the tag end because in order to be a tag block it must start with '<'.
+            var tagEnd = tagBlock.Children.Last() as Span;
+
+            // If our tag end is not a markup span it means it's some sort of code SyntaxTreeNode (not a valid format)
+            if (tagEnd != null && tagEnd.Kind == SpanKind.Markup)
+            {
+                var endSymbol = tagEnd.Symbols.LastOrDefault() as HtmlSymbol;
+
+                if (endSymbol != null && endSymbol.Type == HtmlSymbolType.CloseAngle)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private void BuildCurrentlyTrackedBlock()
@@ -249,11 +320,6 @@ namespace Microsoft.AspNet.Razor.Parser.TagHelpers.Internal
                    childSpan.Kind != SpanKind.Transition;
         }
 
-        private bool IsRegisteredTagHelper(string tagName)
-        {
-            return _provider.GetTagHelpers(tagName).Any();
-        }
-
         private void TrackBlock(BlockBuilder builder)
         {
             _currentBlock = builder;
@@ -263,7 +329,7 @@ namespace Microsoft.AspNet.Razor.Parser.TagHelpers.Internal
 
         private void TrackTagHelperBlock(TagHelperBlockBuilder builder)
         {
-            _tagStack.Push(builder);
+            _tagStack.Push(new TagHelperBlockTracker(builder));
 
             TrackBlock(builder);
         }
@@ -274,7 +340,7 @@ namespace Microsoft.AspNet.Razor.Parser.TagHelpers.Internal
 
             foreach (var tag in _tagStack)
             {
-                if (tag.TagName.Equals(tagName, StringComparison.OrdinalIgnoreCase))
+                if (tag.Builder.TagName.Equals(tagName, StringComparison.OrdinalIgnoreCase))
                 {
                     break;
                 }
@@ -303,7 +369,7 @@ namespace Microsoft.AspNet.Razor.Parser.TagHelpers.Internal
         {
             for (var i = 0; i < count; i++)
             {
-                var malformedTagHelper = _tagStack.Peek();
+                var malformedTagHelper = _tagStack.Peek().Builder;
 
                 context.ErrorSink.OnError(
                     malformedTagHelper.Start,
@@ -349,6 +415,17 @@ namespace Microsoft.AspNet.Razor.Parser.TagHelpers.Internal
         {
             Debug.Assert(tagBlock.Type == BlockType.Tag);
             Debug.Assert(tagBlock.Children.First() is Span);
+        }
+
+        private class TagHelperBlockTracker
+        {
+            public TagHelperBlockTracker(TagHelperBlockBuilder builder)
+            {
+                Builder = builder;
+            }
+
+            public TagHelperBlockBuilder Builder { get; }
+            public uint OpenMatchingTags { get; set; }
         }
     }
 }

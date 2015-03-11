@@ -123,7 +123,7 @@ namespace Microsoft.AspNet.Razor.Parser.TagHelpers.Internal
                 {
                     // If the current tag matches the current TagHelper scope it means the parent TagHelper matched
                     // all the required attributes but the current one did not; therefore, we need to increment the 
-                    // AdditionalEndTagsRequired counter for current the TagHelperBlock so we don't end it too early.
+                    // OpenMatchingTags counter for current the TagHelperBlock so we don't end it too early.
                     // ex: <myth req="..."><myth></myth></myth> We don't want the first myth to close on the inside
                     // tag.
                     if (string.Equals(tagNameScope, tagName, StringComparison.OrdinalIgnoreCase))
@@ -211,7 +211,7 @@ namespace Microsoft.AspNet.Razor.Parser.TagHelpers.Internal
         private IEnumerable<string> GetAttributeNames(Block tagBlock)
         {
             // Need to calculate how many children we should take that represent the attributes.
-            var childrenOffset = PartialTag(tagBlock) ? 1 : 2;
+            var childrenOffset = IsPartialTag(tagBlock) ? 1 : 2;
             var attributeChildren = tagBlock.Children.Skip(1).Take(tagBlock.Children.Count() - childrenOffset);
             var attributeNames = new List<string>();
 
@@ -221,7 +221,7 @@ namespace Microsoft.AspNet.Razor.Parser.TagHelpers.Internal
 
                 if (child.IsBlock)
                 {
-                    childSpan = ((Block)child).Children.FirstOrDefault() as Span;
+                    childSpan = ((Block)child).FindFirstDescendentSpan();
 
                     if (childSpan == null)
                     {
@@ -247,19 +247,19 @@ namespace Microsoft.AspNet.Razor.Parser.TagHelpers.Internal
         private static bool ValidateTagStructure(string tagName, Block tag, RewritingContext context)
         {
             // We assume an invalid structure until we verify that the tag meets all of our "valid structure" criteria.
-            var invalidStructure = PartialTag(tag);
-
-            if (invalidStructure)
+            if (IsPartialTag(tag))
             {
                 context.ErrorSink.OnError(
                     tag.Start,
                     RazorResources.FormatTagHelpersParseTreeRewriter_MissingCloseAngle(tagName));
+
+                return false;
             }
 
-            return !invalidStructure;
+            return true;
         }
 
-        private static bool PartialTag(Block tagBlock)
+        private static bool IsPartialTag(Block tagBlock)
         {
             // No need to validate the tag end because in order to be a tag block it must start with '<'.
             var tagEnd = tagBlock.Children.Last() as Span;
@@ -425,6 +425,7 @@ namespace Microsoft.AspNet.Razor.Parser.TagHelpers.Internal
             }
 
             public TagHelperBlockBuilder Builder { get; }
+
             public uint OpenMatchingTags { get; set; }
         }
     }

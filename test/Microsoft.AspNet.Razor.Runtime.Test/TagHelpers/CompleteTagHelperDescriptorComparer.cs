@@ -23,16 +23,22 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
             return base.Equals(descriptorX, descriptorY) &&
                    // Tests should be exact casing
                    string.Equals(descriptorX.TagName, descriptorY.TagName, StringComparison.Ordinal) &&
-                   descriptorX.Attributes.SequenceEqual(descriptorY.Attributes,
-                                                        CompleteTagHelperAttributeDescriptorComparer.Default);
+                   Enumerable.SequenceEqual(
+                       descriptorX.RequiredAttributes,
+                       descriptorY.RequiredAttributes,
+                       StringComparer.OrdinalIgnoreCase) &&
+                   descriptorX.Attributes.SequenceEqual(
+                       descriptorY.Attributes,
+                        CompleteTagHelperAttributeDescriptorComparer.Default);
         }
 
         int IEqualityComparer<TagHelperDescriptor>.GetHashCode(TagHelperDescriptor descriptor)
         {
-            return HashCodeCombiner.Start()
-                                   .Add(base.GetHashCode())
-                                   .Add(descriptor.Attributes)
-                                   .CombinedHash;
+            return HashCodeCombiner
+                .Start()
+                .Add(base.GetHashCode())
+                .Add(descriptor.Attributes)
+                .CombinedHash;
         }
 
         private class CompleteTagHelperAttributeDescriptorComparer : IEqualityComparer<TagHelperAttributeDescriptor>
@@ -46,18 +52,16 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
 
             public bool Equals(TagHelperAttributeDescriptor descriptorX, TagHelperAttributeDescriptor descriptorY)
             {
-                return string.Equals(descriptorX.Name, descriptorY.Name, StringComparison.Ordinal) &&
-                       string.Equals(descriptorX.PropertyName, descriptorY.PropertyName, StringComparison.Ordinal) &&
-                       string.Equals(descriptorX.TypeName, descriptorY.TypeName, StringComparison.Ordinal);
+                // Tests should be exact casing
+                return string.Equals(descriptorX.Name, descriptorY.Name, StringComparison.Ordinal);
             }
 
             public int GetHashCode(TagHelperAttributeDescriptor descriptor)
             {
-                return HashCodeCombiner.Start()
-                                       .Add(descriptor.Name, StringComparer.Ordinal)
-                                       .Add(descriptor.PropertyName, StringComparer.Ordinal)
-                                       .Add(descriptor.TypeName, StringComparer.Ordinal)
-                                       .CombinedHash;
+                return HashCodeCombiner
+                    .Start()
+                    .Add(descriptor.Name, StringComparer.Ordinal)
+                    .CombinedHash;
             }
         }
     }

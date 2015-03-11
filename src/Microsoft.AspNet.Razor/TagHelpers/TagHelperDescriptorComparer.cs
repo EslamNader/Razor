@@ -31,7 +31,8 @@ namespace Microsoft.AspNet.Razor.TagHelpers
         /// <remarks>
         /// Determines equality based on <see cref="TagHelperDescriptor.TypeName"/>,
         /// <see cref="TagHelperDescriptor.AssemblyName"/>, <see cref="TagHelperDescriptor.TagName"/>,
-        /// <see cref="TagHelperDescriptor.Prefix"/> and <see cref="TagHelperDescriptor.RequiredAttributes"/>.
+        /// <see cref="TagHelperDescriptor.Prefix"/>, <see cref="TagHelperDescriptor.Attributes"/>, and 
+        /// <see cref="TagHelperDescriptor.RequiredAttributes"/>.
         /// </remarks>
         public bool Equals(TagHelperDescriptor descriptorX, TagHelperDescriptor descriptorY)
         {
@@ -39,7 +40,18 @@ namespace Microsoft.AspNet.Razor.TagHelpers
                    string.Equals(descriptorX.TagName, descriptorY.TagName, StringComparison.OrdinalIgnoreCase) &&
                    string.Equals(descriptorX.Prefix, descriptorY.Prefix, StringComparison.OrdinalIgnoreCase) &&
                    string.Equals(descriptorX.AssemblyName, descriptorY.AssemblyName, StringComparison.Ordinal) &&
-                   Enumerable.SequenceEqual(descriptorX.RequiredAttributes, descriptorY.RequiredAttributes);
+                   Enumerable.SequenceEqual(
+                       descriptorX.RequiredAttributes.OrderBy(
+                           attribute => attribute, StringComparer.OrdinalIgnoreCase),
+                       descriptorY.RequiredAttributes.OrderBy(
+                           attribute => attribute, StringComparer.OrdinalIgnoreCase),
+                       StringComparer.OrdinalIgnoreCase) &&
+                   Enumerable.SequenceEqual(
+                       descriptorX.Attributes.OrderBy(
+                           attribute => TagHelperAttributeDescriptorComparer.Default.GetHashCode(attribute)),
+                       descriptorY.Attributes.OrderBy(
+                           attribute => TagHelperAttributeDescriptorComparer.Default.GetHashCode(attribute)),
+                       TagHelperAttributeDescriptorComparer.Default);
         }
 
         /// <summary>
@@ -56,6 +68,33 @@ namespace Microsoft.AspNet.Razor.TagHelpers
                 .Add(descriptor.AssemblyName, StringComparer.Ordinal)
                 .Add(descriptor.RequiredAttributes)
                 .CombinedHash;
+        }
+
+        private class TagHelperAttributeDescriptorComparer : IEqualityComparer<TagHelperAttributeDescriptor>
+        {
+            public static readonly TagHelperAttributeDescriptorComparer Default =
+                new TagHelperAttributeDescriptorComparer();
+
+            private TagHelperAttributeDescriptorComparer()
+            {
+            }
+
+            public bool Equals(TagHelperAttributeDescriptor descriptorX, TagHelperAttributeDescriptor descriptorY)
+            {
+                return string.Equals(descriptorX.Name, descriptorY.Name, StringComparison.OrdinalIgnoreCase) &&
+                       string.Equals(descriptorX.PropertyName, descriptorY.PropertyName, StringComparison.Ordinal) &&
+                       string.Equals(descriptorX.TypeName, descriptorY.TypeName, StringComparison.Ordinal);
+            }
+
+            public int GetHashCode(TagHelperAttributeDescriptor descriptor)
+            {
+                return HashCodeCombiner
+                    .Start()
+                    .Add(descriptor.Name, StringComparer.OrdinalIgnoreCase)
+                    .Add(descriptor.PropertyName, StringComparer.Ordinal)
+                    .Add(descriptor.TypeName, StringComparer.Ordinal)
+                    .CombinedHash;
+            }
         }
     }
 }

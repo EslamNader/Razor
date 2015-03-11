@@ -170,6 +170,38 @@ namespace Microsoft.AspNet.Razor.Runtime
             return string.Format(CultureInfo.CurrentCulture, GetString("TagHelperDescriptorResolver_InvalidTagHelperPrefixValue"), p0, p1, p2);
         }
 
+        /// <summary>
+        /// Attribute
+        /// </summary>
+        internal static string TagHelperDescriptorFactory_Attribute
+        {
+            get { return GetString("TagHelperDescriptorFactory_Attribute"); }
+        }
+
+        /// <summary>
+        /// Attribute
+        /// </summary>
+        internal static string FormatTagHelperDescriptorFactory_Attribute()
+        {
+            return GetString("TagHelperDescriptorFactory_Attribute");
+        }
+
+        /// <summary>
+        /// Tag
+        /// </summary>
+        internal static string TagHelperDescriptorFactory_Tag
+        {
+            get { return GetString("TagHelperDescriptorFactory_Tag"); }
+        }
+
+        /// <summary>
+        /// Tag
+        /// </summary>
+        internal static string FormatTagHelperDescriptorFactory_Tag()
+        {
+            return GetString("TagHelperDescriptorFactory_Tag");
+        }
+
         private static string GetString(string name, params string[] formatterNames)
         {
             var value = _resourceManager.GetString(name);

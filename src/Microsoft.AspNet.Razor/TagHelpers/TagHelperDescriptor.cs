@@ -6,6 +6,8 @@ using System.Linq;
 
 namespace Microsoft.AspNet.Razor.TagHelpers
 {
+    // All properties on this class have a setter to enable serialization/deserialization.
+
     /// <summary>
     /// A metadata class describing a tag helper.
     /// </summary>
@@ -56,9 +58,9 @@ namespace Microsoft.AspNet.Razor.TagHelpers
             [NotNull] IEnumerable<string> requiredAttributes)
             : this(
                 prefix: string.Empty,
-                tagName: tagName, 
-                typeName: typeName, 
-                assemblyName: assemblyName, 
+                tagName: tagName,
+                typeName: typeName,
+                assemblyName: assemblyName,
                 attributes: attributes,
                 requiredAttributes: requiredAttributes)
         {
@@ -98,8 +100,6 @@ namespace Microsoft.AspNet.Razor.TagHelpers
             Attributes = new List<TagHelperAttributeDescriptor>(attributes);
             RequiredAttributes = new List<string>(requiredAttributes);
         }
-
-        // All properties on this class have a setter to enable serialization/deserialization.
 
         /// <summary>
         /// Text used as a required prefix when matching HTML start and end tags in the Razor source to available 

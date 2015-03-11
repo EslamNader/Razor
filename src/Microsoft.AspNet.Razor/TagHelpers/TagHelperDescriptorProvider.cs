@@ -37,13 +37,13 @@ namespace Microsoft.AspNet.Razor.TagHelpers
         /// </summary>
         /// <param name="tagName">The name of the HTML tag to match. Providing a '*' tag name
         /// retrieves catch-all <see cref="TagHelperDescriptor"/>s (descriptors that target every tag).</param>
-        /// <param name="attributeNames">Attributes provided by the HTML element to match.</param>
+        /// <param name="attributeNames">Attributes the HTML element must contain to match.</param>
         /// <returns><see cref="TagHelperDescriptor"/>s that apply to the given <paramref name="tagName"/>.
         /// Will return an empty <see cref="Enumerable" /> if no <see cref="TagHelperDescriptor"/>s are
         /// found.</returns>
         public IEnumerable<TagHelperDescriptor> GetDescriptors(string tagName, IEnumerable<string> attributeNames)
         {
-            HashSet<TagHelperDescriptor> descriptors;
+            IEnumerable<TagHelperDescriptor> descriptors;
 
             if (!string.IsNullOrEmpty(_tagHelperPrefix) &&
                 (tagName.Length <= _tagHelperPrefix.Length ||
@@ -53,10 +53,16 @@ namespace Microsoft.AspNet.Razor.TagHelpers
                 return Enumerable.Empty<TagHelperDescriptor>();
             }
 
+            HashSet<TagHelperDescriptor> catchAllDescriptors;
+
             // Ensure there's a HashSet to use.
-            if (!_registrations.TryGetValue(CatchAllDescriptorTarget, out descriptors))
+            if (!_registrations.TryGetValue(CatchAllDescriptorTarget, out catchAllDescriptors))
             {
                 descriptors = new HashSet<TagHelperDescriptor>(TagHelperDescriptorComparer.Default);
+            }
+            else
+            {
+                descriptors = catchAllDescriptors;
             }
 
             // If the requested tag name is the catch-all target, we shouldn't do the work of concatenating extra
@@ -68,7 +74,7 @@ namespace Microsoft.AspNet.Razor.TagHelpers
                 HashSet<TagHelperDescriptor> matchingDescriptors;
                 if (_registrations.TryGetValue(tagName, out matchingDescriptors))
                 {
-                    descriptors = new HashSet<TagHelperDescriptor>(matchingDescriptors.Concat(descriptors));
+                    descriptors = matchingDescriptors.Concat(descriptors);
                 }
             }
 

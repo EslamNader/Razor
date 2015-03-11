@@ -147,4 +147,10 @@
   <data name="TagHelperDescriptorResolver_InvalidTagHelperPrefixValue" xml:space="preserve">
     <value>Invalid tag helper directive '{0}' value. '{1} is not allowed in prefix '{2}'.</value>
   </data>
+  <data name="TagHelperDescriptorFactory_Attribute" xml:space="preserve">
+    <value>Attribute</value>
+  </data>
+  <data name="TagHelperDescriptorFactory_Tag" xml:space="preserve">
+    <value>Tag</value>
+  </data>
 </root>

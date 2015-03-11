@@ -556,90 +556,225 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
                     "Tag helpers cannot target {0} name '{1}' because it contains a '{2}' character.";
                 var nullOrWhitespaceNameError =
                     "{0} name cannot be null or whitespace.";
+                Func<string, string, string> onNameError = (invalidText, invalidCharacter) =>
+                    string.Format(invalidNameError, "tag", invalidText, invalidCharacter);
 
-                // name, expectedErrorMessage
-                return new TheoryData<string, string>
+                // name, expectedErrorMessages
+                return new TheoryData<string, string[]>
                 {
-                    { "!", string.Format(invalidNameError, "tag", "!", "!") },
-                    { "hello!", string.Format(invalidNameError, "tag", "hello!", "!") },
-                    { "!hello", string.Format(invalidNameError, "tag", "!hello", "!") },
-                    { "he!lo", string.Format(invalidNameError, "tag", "he!lo", "!") },
-                    { "!he!lo!", string.Format(invalidNameError, "tag", "!he!lo!", "!") },
-                    { "@", string.Format(invalidNameError, "tag", "@", "@") },
-                    { "hello@", string.Format(invalidNameError, "tag", "hello@", "@") },
-                    { "@hello", string.Format(invalidNameError, "tag", "@hello", "@") },
-                    { "he@lo", string.Format(invalidNameError, "tag", "he@lo", "@") },
-                    { "@he@lo@", string.Format(invalidNameError, "tag", "@he@lo@", "@") },
-                    { "/", string.Format(invalidNameError, "tag", "/", "/") },
-                    { "hello/", string.Format(invalidNameError, "tag", "hello/", "/") },
-                    { "/hello", string.Format(invalidNameError, "tag", "/hello", "/") },
-                    { "he/lo", string.Format(invalidNameError, "tag", "he/lo", "/") },
-                    { "/he/lo/", string.Format(invalidNameError, "tag", "/he/lo/", "/") },
-                    { "<", string.Format(invalidNameError, "tag", "<", "<") },
-                    { "hello<", string.Format(invalidNameError, "tag", "hello<", "<") },
-                    { "<hello", string.Format(invalidNameError, "tag", "<hello", "<") },
-                    { "he<lo", string.Format(invalidNameError, "tag", "he<lo", "<") },
-                    { "<he<lo<", string.Format(invalidNameError, "tag", "<he<lo<", "<") },
-                    { "?", string.Format(invalidNameError, "tag", "?", "?") },
-                    { "hello?", string.Format(invalidNameError, "tag", "hello?", "?") },
-                    { "?hello", string.Format(invalidNameError, "tag", "?hello", "?") },
-                    { "he?lo", string.Format(invalidNameError, "tag", "he?lo", "?") },
-                    { "?he?lo?", string.Format(invalidNameError, "tag", "?he?lo?", "?") },
-                    { "[", string.Format(invalidNameError, "tag", "[", "[") },
-                    { "hello[", string.Format(invalidNameError, "tag", "hello[", "[") },
-                    { "[hello", string.Format(invalidNameError, "tag", "[hello", "[") },
-                    { "he[lo", string.Format(invalidNameError, "tag", "he[lo", "[") },
-                    { "[he[lo[", string.Format(invalidNameError, "tag", "[he[lo[", "[") },
-                    { ">", string.Format(invalidNameError, "tag", ">", ">") },
-                    { "hello>", string.Format(invalidNameError, "tag", "hello>", ">") },
-                    { ">hello", string.Format(invalidNameError, "tag", ">hello", ">") },
-                    { "he>lo", string.Format(invalidNameError, "tag", "he>lo", ">") },
-                    { ">he>lo>", string.Format(invalidNameError, "tag", ">he>lo>", ">") },
-                    { "]", string.Format(invalidNameError, "tag", "]", "]") },
-                    { "hello]", string.Format(invalidNameError, "tag", "hello]", "]") },
-                    { "]hello", string.Format(invalidNameError, "tag", "]hello", "]") },
-                    { "he]lo", string.Format(invalidNameError, "tag", "he]lo", "]") },
-                    { "]he]lo]", string.Format(invalidNameError, "tag", "]he]lo]", "]") },
-                    { "=", string.Format(invalidNameError, "tag", "=", "=") },
-                    { "hello=", string.Format(invalidNameError, "tag", "hello=", "=") },
-                    { "=hello", string.Format(invalidNameError, "tag", "=hello", "=") },
-                    { "he=lo", string.Format(invalidNameError, "tag", "he=lo", "=") },
-                    { "=he=lo=", string.Format(invalidNameError, "tag", "=he=lo=", "=") },
-                    { "\"", string.Format(invalidNameError, "tag", "\"", "\"") },
-                    { "hello\"", string.Format(invalidNameError, "tag", "hello\"", "\"") },
-                    { "\"hello", string.Format(invalidNameError, "tag", "\"hello", "\"") },
-                    { "he\"lo", string.Format(invalidNameError, "tag", "he\"lo", "\"") },
-                    { "\"he\"lo\"", string.Format(invalidNameError, "tag", "\"he\"lo\"", "\"") },
-                    { "'", string.Format(invalidNameError, "tag", "'", "'") },
-                    { "hello'", string.Format(invalidNameError, "tag", "hello'", "'") },
-                    { "'hello", string.Format(invalidNameError, "tag", "'hello", "'") },
-                    { "he'lo", string.Format(invalidNameError, "tag", "he'lo", "'") },
-                    { "'he'lo'", string.Format(invalidNameError, "tag", "'he'lo'", "'") },
-                    { string.Empty, string.Format(nullOrWhitespaceNameError, "Tag") },
-                    { Environment.NewLine, string.Format(nullOrWhitespaceNameError, "Tag") },
-                    { "\t", string.Format(nullOrWhitespaceNameError, "Tag") },
-                    { " \t ", string.Format(nullOrWhitespaceNameError, "Tag") },
-                    { " ", string.Format(nullOrWhitespaceNameError, "Tag") },
-                    { Environment.NewLine + " ", string.Format(nullOrWhitespaceNameError, "Tag") }
+                    { "!", new[] {  onNameError("!", "!") } },
+                    { "hello!", new[] { onNameError("hello!", "!") } },
+                    { "!hello", new[] { onNameError("!hello", "!") } },
+                    { "he!lo", new[] { onNameError("he!lo", "!") } },
+                    {
+                        "!he!lo!",
+                        new[]
+                        {
+                            onNameError("!he!lo!", "!"),
+                            onNameError("!he!lo!", "!"),
+                            onNameError("!he!lo!", "!")
+                        }
+                    },
+                    { "@", new[] { onNameError("@", "@") } },
+                    { "hello@", new[] { onNameError("hello@", "@") } },
+                    { "@hello", new[] { onNameError("@hello", "@") } },
+                    { "he@lo", new[] { onNameError("he@lo", "@") } },
+                    {
+                        "@he@lo@",
+                        new[]
+                        {
+                            onNameError("@he@lo@", "@"),
+                            onNameError("@he@lo@", "@"),
+                            onNameError("@he@lo@", "@")
+                        }
+                    },
+                    { "/", new[] { onNameError("/", "/") } },
+                    { "hello/", new[] { onNameError("hello/", "/") } },
+                    { "/hello", new[] { onNameError("/hello", "/") } },
+                    { "he/lo", new[] { onNameError("he/lo", "/") } },
+                    {
+                        "/he/lo/",
+                        new[] {
+                            onNameError("/he/lo/", "/"),
+                            onNameError("/he/lo/", "/"),
+                            onNameError("/he/lo/", "/")
+                        }
+                    },
+                    { "<", new[] { onNameError("<", "<") } },
+                    { "hello<", new[] { onNameError("hello<", "<") } },
+                    { "<hello", new[] { onNameError("<hello", "<") } },
+                    { "he<lo", new[] { onNameError("he<lo", "<") } },
+                    {
+                        "<he<lo<",
+                        new[]
+                        {
+                            onNameError("<he<lo<", "<"),
+                            onNameError("<he<lo<", "<"),
+                            onNameError("<he<lo<", "<")
+                        }
+                    },
+                    { "?", new[] { onNameError("?", "?") } },
+                    { "hello?", new[] { onNameError("hello?", "?") } },
+                    { "?hello", new[] { onNameError("?hello", "?") } },
+                    { "he?lo", new[] { onNameError("he?lo", "?") } },
+                    {
+                        "?he?lo?",
+                        new[]
+                        {
+                            onNameError("?he?lo?", "?"),
+                            onNameError("?he?lo?", "?"),
+                            onNameError("?he?lo?", "?")
+                        }
+                    },
+                    { "[", new[] { onNameError("[", "[") } },
+                    { "hello[", new[] { onNameError("hello[", "[") } },
+                    { "[hello", new[] { onNameError("[hello", "[") } },
+                    { "he[lo", new[] { onNameError("he[lo", "[") } },
+                    {
+                        "[he[lo[",
+                        new[]
+                        {
+                            onNameError("[he[lo[", "["),
+                            onNameError("[he[lo[", "["),
+                            onNameError("[he[lo[", "[")
+                        }
+                    },
+                    { ">", new[] { onNameError(">", ">") } },
+                    { "hello>", new[] { onNameError("hello>", ">") } },
+                    { ">hello", new[] { onNameError(">hello", ">") } },
+                    { "he>lo", new[] { onNameError("he>lo", ">") } },
+                    {
+                        ">he>lo>",
+                        new[]
+                        {
+                            onNameError(">he>lo>", ">"),
+                            onNameError(">he>lo>", ">"),
+                            onNameError(">he>lo>", ">")
+                        }
+                    },
+                    { "]", new[] { onNameError("]", "]") } },
+                    { "hello]", new[] { onNameError("hello]", "]") } },
+                    { "]hello", new[] { onNameError("]hello", "]") } },
+                    { "he]lo", new[] { onNameError("he]lo", "]") } },
+                    {
+                        "]he]lo]",
+                        new[]
+                        {
+                            onNameError("]he]lo]", "]"),
+                            onNameError("]he]lo]", "]"),
+                            onNameError("]he]lo]", "]")
+                        }
+                    },
+                    { "=", new[] { onNameError("=", "=") } },
+                    { "hello=", new[] { onNameError("hello=", "=") } },
+                    { "=hello", new[] { onNameError("=hello", "=") } },
+                    { "he=lo", new[] { onNameError("he=lo", "=") } },
+                    {
+                        "=he=lo=",
+                        new[]
+                        {
+                            onNameError("=he=lo=", "="),
+                            onNameError("=he=lo=", "="),
+                            onNameError("=he=lo=", "=")
+                        }
+                    },
+                    { "\"", new[] { onNameError("\"", "\"") } },
+                    { "hello\"", new[] { onNameError("hello\"", "\"") } },
+                    { "\"hello", new[] { onNameError("\"hello", "\"") } },
+                    { "he\"lo", new[] { onNameError("he\"lo", "\"") } },
+                    {
+                        "\"he\"lo\"",
+                        new[]
+                        {
+                            onNameError("\"he\"lo\"", "\""),
+                            onNameError("\"he\"lo\"", "\""),
+                            onNameError("\"he\"lo\"", "\"")
+                        }
+                    },
+                    { "'", new[] { onNameError("'", "'") } },
+                    { "hello'", new[] { onNameError("hello'", "'") } },
+                    { "'hello", new[] { onNameError("'hello", "'") } },
+                    { "he'lo", new[] { onNameError("he'lo", "'") } },
+                    {
+                        "'he'lo'",
+                        new[]
+                        {
+                            onNameError("'he'lo'", "'"),
+                            onNameError("'he'lo'", "'"),
+                            onNameError("'he'lo'", "'")
+                        }
+                    },
+                    { string.Empty, new[] { string.Format(nullOrWhitespaceNameError, "Tag") } },
+                    { Environment.NewLine, new[] { string.Format(nullOrWhitespaceNameError, "Tag") } },
+                    { "\t", new[] { string.Format(nullOrWhitespaceNameError, "Tag") } },
+                    { " \t ", new[] { string.Format(nullOrWhitespaceNameError, "Tag") } },
+                    { " ", new[] { string.Format(nullOrWhitespaceNameError, "Tag") } },
+                    { Environment.NewLine + " ", new[] { string.Format(nullOrWhitespaceNameError, "Tag") } },
+                    {
+                        "! \t\r\n@/<>?[]=\"'",
+                        new[]
+                        {
+                            onNameError("! \t\r\n@/<>?[]=\"'", "!"),
+                            onNameError("! \t\r\n@/<>?[]=\"'", " "),
+                            onNameError("! \t\r\n@/<>?[]=\"'", "\t"),
+                            onNameError("! \t\r\n@/<>?[]=\"'", "\r"),
+                            onNameError("! \t\r\n@/<>?[]=\"'", "\n"),
+                            onNameError("! \t\r\n@/<>?[]=\"'", "@"),
+                            onNameError("! \t\r\n@/<>?[]=\"'", "/"),
+                            onNameError("! \t\r\n@/<>?[]=\"'", "<"),
+                            onNameError("! \t\r\n@/<>?[]=\"'", ">"),
+                            onNameError("! \t\r\n@/<>?[]=\"'", "?"),
+                            onNameError("! \t\r\n@/<>?[]=\"'", "["),
+                            onNameError("! \t\r\n@/<>?[]=\"'", "]"),
+                            onNameError("! \t\r\n@/<>?[]=\"'", "="),
+                            onNameError("! \t\r\n@/<>?[]=\"'", "\""),
+                            onNameError("! \t\r\n@/<>?[]=\"'", "'"),
+                        }
+                    },
+                    {
+                        "! \tv\ra\nl@i/d<>?[]=\"'",
+                        new[]
+                        {
+                            onNameError("! \tv\ra\nl@i/d<>?[]=\"'", "!"),
+                            onNameError("! \tv\ra\nl@i/d<>?[]=\"'", " "),
+                            onNameError("! \tv\ra\nl@i/d<>?[]=\"'", "\t"),
+                            onNameError("! \tv\ra\nl@i/d<>?[]=\"'", "\r"),
+                            onNameError("! \tv\ra\nl@i/d<>?[]=\"'", "\n"),
+                            onNameError("! \tv\ra\nl@i/d<>?[]=\"'", "@"),
+                            onNameError("! \tv\ra\nl@i/d<>?[]=\"'", "/"),
+                            onNameError("! \tv\ra\nl@i/d<>?[]=\"'", "<"),
+                            onNameError("! \tv\ra\nl@i/d<>?[]=\"'", ">"),
+                            onNameError("! \tv\ra\nl@i/d<>?[]=\"'", "?"),
+                            onNameError("! \tv\ra\nl@i/d<>?[]=\"'", "["),
+                            onNameError("! \tv\ra\nl@i/d<>?[]=\"'", "]"),
+                            onNameError("! \tv\ra\nl@i/d<>?[]=\"'", "="),
+                            onNameError("! \tv\ra\nl@i/d<>?[]=\"'", "\""),
+                            onNameError("! \tv\ra\nl@i/d<>?[]=\"'", "'"),
+                        }
+                    },
                 };
             }
         }
 
         [Theory]
         [MemberData(nameof(InvalidNameData))]
-        public void TryGetValidatedNames_CreatesErrorOnInvalidNames(string name, string expectedErrorMessage)
+        public void ValidTargetElementAttributeNames_CreatesErrorOnInvalidNames(
+            string name, string[] expectedErrorMessages)
         {
             // Arrange
             var errorSink = new ParserErrorSink();
-            IEnumerable<string> names;
+            var attribute = new TargetElementAttribute(name);
 
             // Act
-            TagHelperDescriptorFactory.TryGetValidatedNames(name, "Tag", errorSink, out names);
+            TagHelperDescriptorFactory.ValidTargetElementAttributeNames(attribute, errorSink);
 
             // Assert
-            var error = Assert.Single(errorSink.Errors);
-            Assert.Equal(expectedErrorMessage, error.Message);
-            Assert.Equal(SourceLocation.Zero, error.Location);
+            var errors = errorSink.Errors.ToArray();
+            for (var i = 0; i < errors.Length; i++)
+            {
+                Assert.Equal(expectedErrorMessages[i], errors[i].Message);
+                Assert.Equal(SourceLocation.Zero, errors[i].Location);
+            }
         }
 
         public static TheoryData ValidNameData
@@ -668,20 +803,25 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
 
         [Theory]
         [MemberData(nameof(ValidNameData))]
-        public void TryGetValidatedNames_OutputsCommaSeparatedListOfNames(
+        public void GetCommaSeparatedValues_OutputsCommaSeparatedListOfNames(
             string name,
             IEnumerable<string> expectedNames)
         {
-            // Arrange
-            var errorSink = new ParserErrorSink();
-            IEnumerable<string> result;
-
             // Act
-            TagHelperDescriptorFactory.TryGetValidatedNames(name, "Something", errorSink, out result);
+            var result = TagHelperDescriptorFactory.GetCommaSeparatedValues(name);
 
             // Assert
-            Assert.Empty(errorSink.Errors);
             Assert.Equal(expectedNames, result);
+        }
+
+        [Fact]
+        public void GetCommaSeparatedValues_OutputsEmptyArrayForNullValue()
+        {
+            // Act
+            var result = TagHelperDescriptorFactory.GetCommaSeparatedValues(text: null);
+
+            // Assert
+            Assert.Empty(result);
         }
 
         [TargetElement(Attributes = "class")]

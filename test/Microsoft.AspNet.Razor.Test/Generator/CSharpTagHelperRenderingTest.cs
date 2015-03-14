@@ -57,7 +57,7 @@ namespace Microsoft.AspNet.Razor.Test.Generator
                         typeName: "CatchAllTagHelper",
                         assemblyName: "SomeAssembly",
                         attributes: new TagHelperAttributeDescriptor[0],
-                        requiredAttributes: new[] { "custom" })
+                        requiredAttributes: new[] { "catchAll" })
                 };
             }
         }
@@ -363,13 +363,13 @@ namespace Microsoft.AspNet.Razor.Test.Generator
                                              generatedLineIndex: 15,
                                              characterOffsetIndex: 14,
                                              contentLength: 14),
-                            BuildLineMapping(documentAbsoluteIndex: 184,
+                            BuildLineMapping(documentAbsoluteIndex: 186,
                                              documentLineIndex: 5,
                                              generatedAbsoluteIndex: 1460,
                                              generatedLineIndex: 41,
                                              characterOffsetIndex: 36,
                                              contentLength: 4),
-                            BuildLineMapping(documentAbsoluteIndex: 230,
+                            BuildLineMapping(documentAbsoluteIndex: 232,
                                              documentLineIndex: 6,
                                              documentCharacterOffsetIndex: 36,
                                              generatedAbsoluteIndex: 1827,

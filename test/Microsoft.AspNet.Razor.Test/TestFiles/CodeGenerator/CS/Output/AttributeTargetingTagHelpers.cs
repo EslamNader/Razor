@@ -1,4 +1,4 @@
-#pragma checksum "AttributeTargetingTagHelpers.cshtml" "{ff1816ec-aa5e-4d10-87f7-6f4963833460}" "2bf15fd49468b1ad7ed487ab8bb68af0b9701e5b"
+#pragma checksum "AttributeTargetingTagHelpers.cshtml" "{ff1816ec-aa5e-4d10-87f7-6f4963833460}" "e5aa16869aaf5543b30289e98ee5733b08bfe423"
 namespace TestOutput
 {
     using Microsoft.AspNet.Razor.Runtime.TagHelpers;
@@ -38,7 +38,7 @@ namespace TestOutput
                 , StartTagHelperWritingScope, EndTagHelperWritingScope);
                 __CatchAllTagHelper = CreateTagHelper<CatchAllTagHelper>();
                 __tagHelperExecutionContext.Add(__CatchAllTagHelper);
-                __tagHelperExecutionContext.AddHtmlAttribute("custom", "hi");
+                __tagHelperExecutionContext.AddHtmlAttribute("catchAll", "hi");
                 __tagHelperExecutionContext.Output = __tagHelperRunner.RunAsync(__tagHelperExecutionContext).Result;
                 WriteLiteral(__tagHelperExecutionContext.Output.GenerateStartTag());
                 Write(__tagHelperExecutionContext.Output.GeneratePreContent());
@@ -111,7 +111,7 @@ namespace TestOutput
                 __tagHelperExecutionContext.AddTagHelperAttribute("checked", __InputTagHelper2.Checked);
                 __CatchAllTagHelper = CreateTagHelper<CatchAllTagHelper>();
                 __tagHelperExecutionContext.Add(__CatchAllTagHelper);
-                __tagHelperExecutionContext.AddHtmlAttribute("custom", "hi");
+                __tagHelperExecutionContext.AddHtmlAttribute("catchAll", "hi");
                 __tagHelperExecutionContext.Output = __tagHelperRunner.RunAsync(__tagHelperExecutionContext).Result;
                 WriteLiteral(__tagHelperExecutionContext.Output.GenerateStartTag());
                 Write(__tagHelperExecutionContext.Output.GeneratePreContent());

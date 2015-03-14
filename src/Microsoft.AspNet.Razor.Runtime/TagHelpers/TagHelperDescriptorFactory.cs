@@ -54,10 +54,8 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
             return tagHelperDescriptors.Distinct(TagHelperDescriptorComparer.Default);
         }
 
-        public static ICollection<char> InvalidNonWhitespaceNameCharacters
-        { get; }
-        =
-            new HashSet<char>(new[] { '@', '!', '<', '/', '?', '[', '>', ']', '=', '"', '\'' });
+        public static ICollection<char> InvalidNonWhitespaceNameCharacters { get; } = new HashSet<char>(
+            new[] { '@', '!', '<', '/', '?', '[', '>', ']', '=', '"', '\'' });
 
         private static IEnumerable<TargetElementAttribute> GetValidTargetElementAttributes(
             TypeInfo typeInfo,

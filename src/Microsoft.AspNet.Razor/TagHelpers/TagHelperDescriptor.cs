@@ -6,8 +6,6 @@ using System.Linq;
 
 namespace Microsoft.AspNet.Razor.TagHelpers
 {
-    // All properties on this class have a setter to enable serialization/deserialization.
-
     /// <summary>
     /// A metadata class describing a tag helper.
     /// </summary>
@@ -46,11 +44,9 @@ namespace Microsoft.AspNet.Razor.TagHelpers
         }
 
         /// <summary>
+        /// Internal for testing.
         /// </summary>
         internal TagHelperDescriptor(
-        /// <param name="requiredAttributes">
-        /// The attribute names required for the tag helper to target the HTML tag.
-        /// </param>
             [NotNull] string tagName,
             [NotNull] string typeName,
             [NotNull] string assemblyName,

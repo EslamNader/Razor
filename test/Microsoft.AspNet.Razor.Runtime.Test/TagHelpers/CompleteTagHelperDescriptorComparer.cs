@@ -23,6 +23,7 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
             return base.Equals(descriptorX, descriptorY) &&
                    // Tests should be exact casing
                    string.Equals(descriptorX.TagName, descriptorY.TagName, StringComparison.Ordinal) &&
+                   string.Equals(descriptorX.Prefix, descriptorY.Prefix, StringComparison.Ordinal) &&
                    Enumerable.SequenceEqual(
                        descriptorX.RequiredAttributes,
                        descriptorY.RequiredAttributes,
@@ -37,6 +38,8 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
             return HashCodeCombiner
                 .Start()
                 .Add(base.GetHashCode())
+                .Add(descriptor.TagName, StringComparer.Ordinal)
+                .Add(descriptor.Prefix)
                 .Add(descriptor.Attributes)
                 .CombinedHash;
         }
@@ -52,8 +55,11 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
 
             public bool Equals(TagHelperAttributeDescriptor descriptorX, TagHelperAttributeDescriptor descriptorY)
             {
-                // Tests should be exact casing
-                return string.Equals(descriptorX.Name, descriptorY.Name, StringComparison.Ordinal);
+                return
+                    // Tests should be exact casing
+                    string.Equals(descriptorX.Name, descriptorY.Name, StringComparison.Ordinal) &&
+                    string.Equals(descriptorX.PropertyName, descriptorY.PropertyName, StringComparison.Ordinal) &&
+                    string.Equals(descriptorX.TypeName, descriptorY.TypeName, StringComparison.Ordinal);
             }
 
             public int GetHashCode(TagHelperAttributeDescriptor descriptor)
@@ -61,6 +67,8 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
                 return HashCodeCombiner
                     .Start()
                     .Add(descriptor.Name, StringComparer.Ordinal)
+                    .Add(descriptor.PropertyName, StringComparer.Ordinal)
+                    .Add(descriptor.TypeName, StringComparer.Ordinal)
                     .CombinedHash;
             }
         }

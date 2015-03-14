@@ -24,7 +24,7 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
         /// Instantiates a new instance of the <see cref="TargetElementAttribute"/> class.
         /// </summary>
         /// <param name="tags">
-        /// A comma separated <see cref="string"/> of tag names the <see cref="ITagHelper"/> targets.
+        /// A comma-separated <see cref="string"/> of tag names the <see cref="ITagHelper"/> targets.
         /// </param>
         public TargetElementAttribute(string tags)
         {
@@ -32,12 +32,12 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
         }
 
         /// <summary>
-        /// A comma separated <see cref="string"/> of tag names the <see cref="ITagHelper"/> targets.
+        /// A comma-separated <see cref="string"/> of tag names the <see cref="ITagHelper"/> targets.
         /// </summary>
         public string Tags { get; set; }
 
         /// <summary>
-        /// A comma separated <see cref="string"/> of attribute names the <see cref="ITagHelper"/> targets.
+        /// A comma-separated <see cref="string"/> of attribute names the <see cref="ITagHelper"/> targets.
         /// </summary>
         public string Attributes { get; set; }
     }

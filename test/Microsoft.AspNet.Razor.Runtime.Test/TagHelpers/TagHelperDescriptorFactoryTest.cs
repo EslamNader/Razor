@@ -31,7 +31,7 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
                         new[]
                         {
                             new TagHelperDescriptor(
-                                "*",
+                                TagHelperDescriptorProvider.CatchAllDescriptorTarget,
                                 typeof(AttributeTargetingTagHelper).FullName,
                                 AssemblyName,
                                 attributes,
@@ -43,7 +43,7 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
                         new[]
                         {
                             new TagHelperDescriptor(
-                                "*",
+                                TagHelperDescriptorProvider.CatchAllDescriptorTarget,
                                 typeof(MultiAttributeTargetingTagHelper).FullName,
                                 AssemblyName,
                                 attributes,
@@ -55,13 +55,13 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
                         new[]
                         {
                             new TagHelperDescriptor(
-                                "*",
+                                TagHelperDescriptorProvider.CatchAllDescriptorTarget,
                                 typeof(MultiAttributeAttributeTargetingTagHelper).FullName,
                                 AssemblyName,
                                 attributes,
                                 requiredAttributes: new[] { "custom" }),
                             new TagHelperDescriptor(
-                                "*",
+                                TagHelperDescriptorProvider.CatchAllDescriptorTarget,
                                 typeof(MultiAttributeAttributeTargetingTagHelper).FullName,
                                 AssemblyName,
                                 attributes,
@@ -73,7 +73,7 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
                         new[]
                         {
                             new TagHelperDescriptor(
-                                "*",
+                                TagHelperDescriptorProvider.CatchAllDescriptorTarget,
                                 typeof(InheritedAttributeTargetingTagHelper).FullName,
                                 AssemblyName,
                                 attributes,
@@ -162,13 +162,17 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
             Type tagHelperType,
             IEnumerable<TagHelperDescriptor> expectedDescriptors)
         {
+            // Arrange
+            var errorSink = new ParserErrorSink();
+
             // Act
             var descriptors = TagHelperDescriptorFactory.CreateDescriptors(
                 AssemblyName,
                 tagHelperType,
-                new ParserErrorSink());
+                errorSink);
 
             // Assert
+            Assert.Empty(errorSink.Errors);
             Assert.Equal(expectedDescriptors, descriptors, CompleteTagHelperDescriptorComparer.Default);
         }
 
@@ -198,13 +202,17 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
             string expectedTagName,
             string expectedAttributeName)
         {
-            // Arrange & Act
+            // Arrange
+            var errorSink = new ParserErrorSink();
+
+            // Act
             var descriptors = TagHelperDescriptorFactory.CreateDescriptors(
                 AssemblyName,
                 tagHelperType,
-                new ParserErrorSink());
+                errorSink);
 
             // Assert
+            Assert.Empty(errorSink.Errors);
             var descriptor = Assert.Single(descriptors);
             Assert.Equal(expectedTagName, descriptor.TagName, StringComparer.Ordinal);
             var attributeDescriptor = Assert.Single(descriptor.Attributes);

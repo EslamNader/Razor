@@ -29,9 +29,9 @@ namespace Microsoft.AspNet.Razor.Test.TagHelpers
                     new MarkupBlock(
                         new ExpressionBlock(
                             factory.CodeTransition(),
-                                factory.Code("DateTime.Now")
-                                    .AsImplicitExpression(CSharpCodeParser.DefaultKeywords)
-                                    .Accepts(AcceptedCharacters.NonWhiteSpace))));
+                            factory.Code("DateTime.Now")
+                                .AsImplicitExpression(CSharpCodeParser.DefaultKeywords)
+                                .Accepts(AcceptedCharacters.NonWhiteSpace))));
 
                 // documentContent, expectedOutput
                 return new TheoryData<string, MarkupBlock>
@@ -119,46 +119,46 @@ namespace Microsoft.AspNet.Razor.Test.TagHelpers
                                 }))
                     },
                     {
-                        "<strong custom=\"hi\" />",
+                        "<strong catchAll=\"hi\" />",
                         new MarkupBlock(
                             new MarkupTagHelperBlock(
                                 "strong",
                                 selfClosing: true,
                                 attributes: new Dictionary<string, SyntaxTreeNode>
                                 {
-                                    ["custom"] = factory.Markup("hi")
+                                    ["catchAll"] = factory.Markup("hi")
                                 }))
                     },
                     {
-                        "<strong custom=\"@DateTime.Now\" />",
+                        "<strong catchAll=\"@DateTime.Now\" />",
                         new MarkupBlock(
                             new MarkupTagHelperBlock(
                                 "strong",
                                 selfClosing: true,
                                 attributes: new Dictionary<string, SyntaxTreeNode>
                                 {
-                                    ["custom"] = dateTimeNow
+                                    ["catchAll"] = dateTimeNow
                                 }))
                     },
                     {
-                        "<strong custom=\"hi\">words and spaces</strong>",
+                        "<strong catchAll=\"hi\">words and spaces</strong>",
                         new MarkupBlock(
                             new MarkupTagHelperBlock(
                                 "strong",
                                 attributes: new Dictionary<string, SyntaxTreeNode>
                                 {
-                                    ["custom"] = factory.Markup("hi")
+                                    ["catchAll"] = factory.Markup("hi")
                                 },
                                 children: factory.Markup("words and spaces")))
                     },
                     {
-                        "<strong custom=\"@DateTime.Now\">words and spaces</strong>",
+                        "<strong catchAll=\"@DateTime.Now\">words and spaces</strong>",
                         new MarkupBlock(
                             new MarkupTagHelperBlock(
                                 "strong",
                                 attributes: new Dictionary<string, SyntaxTreeNode>
                                 {
-                                    ["custom"] = dateTimeNow
+                                    ["catchAll"] = dateTimeNow
                                 },
                                 children: factory.Markup("words and spaces")))
                     },
@@ -200,37 +200,37 @@ namespace Microsoft.AspNet.Razor.Test.TagHelpers
                             blockFactory.MarkupTagBlock("</div>"))
                     },
                     {
-                        "<p random1=\"a\" class=\"btn\" />",
+                        "<p notRequired=\"a\" class=\"btn\" />",
                         new MarkupBlock(
                             new MarkupTagHelperBlock(
                                 "p",
                                 selfClosing: true,
                                 attributes: new Dictionary<string, SyntaxTreeNode>
                                 {
-                                    ["random1"] = factory.Markup("a"),
+                                    ["notRequired"] = factory.Markup("a"),
                                     ["class"] = factory.Markup("btn")
                                 }))
                     },
                     {
-                        "<p random1=\"@DateTime.Now\" class=\"btn\" />",
+                        "<p notRequired=\"@DateTime.Now\" class=\"btn\" />",
                         new MarkupBlock(
                             new MarkupTagHelperBlock(
                                 "p",
                                 selfClosing: true,
                                 attributes: new Dictionary<string, SyntaxTreeNode>
                                 {
-                                    ["random1"] = dateTimeNow,
+                                    ["notRequired"] = dateTimeNow,
                                     ["class"] = factory.Markup("btn")
                                 }))
                     },
                     {
-                        "<p random1=\"a\" class=\"btn\">words and spaces</p>",
+                        "<p notRequired=\"a\" class=\"btn\">words and spaces</p>",
                         new MarkupBlock(
                             new MarkupTagHelperBlock(
                                 "p",
                                 attributes: new Dictionary<string, SyntaxTreeNode>
                                 {
-                                    ["random1"] = factory.Markup("a"),
+                                    ["notRequired"] = factory.Markup("a"),
                                     ["class"] = factory.Markup("btn")
                                 },
                                 children: factory.Markup("words and spaces")))
@@ -303,7 +303,7 @@ namespace Microsoft.AspNet.Razor.Test.TagHelpers
                                 }))
                     },
                     {
-                        "<p class=\"btn\" custom=\"hi\" />",
+                        "<p class=\"btn\" catchAll=\"hi\" />",
                         new MarkupBlock(
                             new MarkupTagHelperBlock(
                                 "p",
@@ -311,23 +311,23 @@ namespace Microsoft.AspNet.Razor.Test.TagHelpers
                                 attributes: new Dictionary<string, SyntaxTreeNode>
                                 {
                                     ["class"] = factory.Markup("btn"),
-                                    ["custom"] = factory.Markup("hi")
+                                    ["catchAll"] = factory.Markup("hi")
                                 }))
                     },
                     {
-                        "<p class=\"btn\" custom=\"hi\">words and spaces</p>",
+                        "<p class=\"btn\" catchAll=\"hi\">words and spaces</p>",
                         new MarkupBlock(
                             new MarkupTagHelperBlock(
                                 "p",
                                 attributes: new Dictionary<string, SyntaxTreeNode>
                                 {
                                     ["class"] = factory.Markup("btn"),
-                                    ["custom"] = factory.Markup("hi")
+                                    ["catchAll"] = factory.Markup("hi")
                                 },
                                 children: factory.Markup("words and spaces")))
                     },
                     {
-                        "<div style=\"\" class=\"btn\" custom=\"hi\" />",
+                        "<div style=\"\" class=\"btn\" catchAll=\"hi\" />",
                         new MarkupBlock(
                             new MarkupTagHelperBlock(
                                 "div",
@@ -336,11 +336,11 @@ namespace Microsoft.AspNet.Razor.Test.TagHelpers
                                 {
                                     ["style"] = new MarkupBlock(),
                                     ["class"] = factory.Markup("btn"),
-                                    ["custom"] = factory.Markup("hi")
+                                    ["catchAll"] = factory.Markup("hi")
                                 }))
                     },
                     {
-                        "<div style=\"\" class=\"btn\" custom=\"hi\" >words and spaces</div>",
+                        "<div style=\"\" class=\"btn\" catchAll=\"hi\" >words and spaces</div>",
                         new MarkupBlock(
                             new MarkupTagHelperBlock(
                                 "div",
@@ -348,12 +348,12 @@ namespace Microsoft.AspNet.Razor.Test.TagHelpers
                                 {
                                     ["style"] = new MarkupBlock(),
                                     ["class"] = factory.Markup("btn"),
-                                    ["custom"] = factory.Markup("hi")
+                                    ["catchAll"] = factory.Markup("hi")
                                 },
                                 children: factory.Markup("words and spaces")))
                     },
                     {
-                        "<div style=\"@DateTime.Now\" class=\"@DateTime.Now\" custom=\"@DateTime.Now\" >words and " +
+                        "<div style=\"@DateTime.Now\" class=\"@DateTime.Now\" catchAll=\"@DateTime.Now\" >words and " +
                         "spaces</div>",
                         new MarkupBlock(
                             new MarkupTagHelperBlock(
@@ -362,12 +362,12 @@ namespace Microsoft.AspNet.Razor.Test.TagHelpers
                                 {
                                     ["style"] = dateTimeNow,
                                     ["class"] = dateTimeNow,
-                                    ["custom"] = dateTimeNow
+                                    ["catchAll"] = dateTimeNow
                                 },
                                 children: factory.Markup("words and spaces")))
                     },
                     {
-                        "<div style=\"\" class=\"btn\" custom=\"hi\" >words<strong>and</strong>spaces</div>",
+                        "<div style=\"\" class=\"btn\" catchAll=\"hi\" >words<strong>and</strong>spaces</div>",
                         new MarkupBlock(
                             new MarkupTagHelperBlock(
                                 "div",
@@ -375,7 +375,7 @@ namespace Microsoft.AspNet.Razor.Test.TagHelpers
                                 {
                                     ["style"] = new MarkupBlock(),
                                     ["class"] = factory.Markup("btn"),
-                                    ["custom"] = factory.Markup("hi")
+                                    ["catchAll"] = factory.Markup("hi")
                                 },
                                 children: new SyntaxTreeNode[]
                                 {
@@ -416,7 +416,7 @@ namespace Microsoft.AspNet.Razor.Test.TagHelpers
                         typeName: "catchAllTagHelper",
                         assemblyName: "SomeAssembly",
                         attributes: new TagHelperAttributeDescriptor[0],
-                        requiredAttributes: new[] { "custom" })
+                        requiredAttributes: new[] { "catchAll" })
                 };
             var descriptorProvider = new TagHelperDescriptorProvider(descriptors);
 
@@ -434,9 +434,9 @@ namespace Microsoft.AspNet.Razor.Test.TagHelpers
                     new MarkupBlock(
                         new ExpressionBlock(
                             factory.CodeTransition(),
-                                factory.Code("DateTime.Now")
-                                    .AsImplicitExpression(CSharpCodeParser.DefaultKeywords)
-                                    .Accepts(AcceptedCharacters.NonWhiteSpace))));
+                            factory.Code("DateTime.Now")
+                                .AsImplicitExpression(CSharpCodeParser.DefaultKeywords)
+                                .Accepts(AcceptedCharacters.NonWhiteSpace))));
 
                 // documentContent, expectedOutput
                 return new TheoryData<string, MarkupBlock>
@@ -457,13 +457,13 @@ namespace Microsoft.AspNet.Razor.Test.TagHelpers
                                 }))
                     },
                     {
-                        "<strong custom=\"hi\"><strong></strong></strong>",
+                        "<strong catchAll=\"hi\"><strong></strong></strong>",
                         new MarkupBlock(
                             new MarkupTagHelperBlock(
                                 "strong",
                                 attributes: new Dictionary<string, SyntaxTreeNode>
                                 {
-                                    ["custom"] = factory.Markup("hi")
+                                    ["catchAll"] = factory.Markup("hi")
                                 },
                                 children: new SyntaxTreeNode[]
                                 {
@@ -489,13 +489,13 @@ namespace Microsoft.AspNet.Razor.Test.TagHelpers
                                 }))
                     },
                     {
-                        "<strong custom=\"hi\"><p><strong></strong></p></strong>",
+                        "<strong catchAll=\"hi\"><p><strong></strong></p></strong>",
                         new MarkupBlock(
                             new MarkupTagHelperBlock(
                                 "strong",
                                 attributes: new Dictionary<string, SyntaxTreeNode>
                                 {
-                                    ["custom"] = factory.Markup("hi")
+                                    ["catchAll"] = factory.Markup("hi")
                                 },
                                 children: new SyntaxTreeNode[]
                                 {
@@ -506,7 +506,7 @@ namespace Microsoft.AspNet.Razor.Test.TagHelpers
                                 }))
                     },
                     {
-                        "<p class=\"btn\"><strong custom=\"hi\"><p></p></strong></p>",
+                        "<p class=\"btn\"><strong catchAll=\"hi\"><p></p></strong></p>",
                         new MarkupBlock(
                             new MarkupTagHelperBlock(
                                 "p",
@@ -518,7 +518,7 @@ namespace Microsoft.AspNet.Razor.Test.TagHelpers
                                     "strong",
                                     attributes: new Dictionary<string, SyntaxTreeNode>
                                     {
-                                        ["custom"] = factory.Markup("hi")
+                                        ["catchAll"] = factory.Markup("hi")
                                     },
                                     children: new[]
                                     {
@@ -527,13 +527,13 @@ namespace Microsoft.AspNet.Razor.Test.TagHelpers
                                     })))
                     },
                     {
-                        "<strong custom=\"hi\"><p class=\"btn\"><strong></strong></p></strong>",
+                        "<strong catchAll=\"hi\"><p class=\"btn\"><strong></strong></p></strong>",
                         new MarkupBlock(
                             new MarkupTagHelperBlock(
                                 "strong",
                                 attributes: new Dictionary<string, SyntaxTreeNode>
                                 {
-                                    ["custom"] = factory.Markup("hi")
+                                    ["catchAll"] = factory.Markup("hi")
                                 },
                                 children: new MarkupTagHelperBlock(
                                     "p",
@@ -569,19 +569,19 @@ namespace Microsoft.AspNet.Razor.Test.TagHelpers
                                     })))
                     },
                     {
-                        "<strong custom=\"hi\"><strong custom=\"hi\"><strong></strong></strong></strong>",
+                        "<strong catchAll=\"hi\"><strong catchAll=\"hi\"><strong></strong></strong></strong>",
                         new MarkupBlock(
                             new MarkupTagHelperBlock(
                                 "strong",
                                 attributes: new Dictionary<string, SyntaxTreeNode>
                                 {
-                                    ["custom"] = factory.Markup("hi")
+                                    ["catchAll"] = factory.Markup("hi")
                                 },
                                 children: new MarkupTagHelperBlock(
                                     "strong",
                                     attributes: new Dictionary<string, SyntaxTreeNode>
                                     {
-                                        ["custom"] = factory.Markup("hi")
+                                        ["catchAll"] = factory.Markup("hi")
                                     },
                                     children: new[]
                                     {
@@ -618,14 +618,14 @@ namespace Microsoft.AspNet.Razor.Test.TagHelpers
                                 }))
                     },
                     {
-                        "<strong custom=\"hi\"><strong><strong><strong custom=\"hi\"><strong></strong></strong>" +
+                        "<strong catchAll=\"hi\"><strong><strong><strong catchAll=\"hi\"><strong></strong></strong>" +
                         "</strong></strong></strong>",
                         new MarkupBlock(
                             new MarkupTagHelperBlock(
                                 "strong",
                                 attributes: new Dictionary<string, SyntaxTreeNode>
                                 {
-                                    ["custom"] = factory.Markup("hi")
+                                    ["catchAll"] = factory.Markup("hi")
                                 },
                                 children: new[]
                                 {
@@ -635,7 +635,7 @@ namespace Microsoft.AspNet.Razor.Test.TagHelpers
                                     "strong",
                                     attributes: new Dictionary<string, SyntaxTreeNode>
                                     {
-                                        ["custom"] = factory.Markup("hi")
+                                        ["catchAll"] = factory.Markup("hi")
                                     },
                                     children: new[]
                                     {
@@ -670,7 +670,7 @@ namespace Microsoft.AspNet.Razor.Test.TagHelpers
                         typeName: "catchAllTagHelper",
                         assemblyName: "SomeAssembly",
                         attributes: new TagHelperAttributeDescriptor[0],
-                        requiredAttributes: new[] { "custom" })
+                        requiredAttributes: new[] { "catchAll" })
                 };
             var descriptorProvider = new TagHelperDescriptorProvider(descriptors);
 
@@ -688,6 +688,7 @@ namespace Microsoft.AspNet.Razor.Test.TagHelpers
                                           "end tag or be self closing.";
                 var errorFormatNoCloseAngle = "Missing close angle for tag helper '{0}'.";
 
+                // documentContent, expectedOutput, expectedErrors
                 return new TheoryData<string, MarkupBlock, RazorError[]>
                 {
                     {
@@ -715,13 +716,13 @@ namespace Microsoft.AspNet.Razor.Test.TagHelpers
                         }
                     },
                     {
-                        "<p random=\"hi\" class=\"btn\"",
+                        "<p notRequired=\"hi\" class=\"btn\"",
                         new MarkupBlock(
                             new MarkupTagHelperBlock(
                                 "p",
                                 attributes: new Dictionary<string, SyntaxTreeNode>
                                 {
-                                    ["random"] = factory.Markup("hi"),
+                                    ["notRequired"] = factory.Markup("hi"),
                                     ["class"] = factory.Markup("btn")
                                 })),
                         new[]
@@ -758,20 +759,20 @@ namespace Microsoft.AspNet.Razor.Test.TagHelpers
                         }
                     },
                     {
-                        "<p random=\"hi\" class=\"btn\"></p",
+                        "<p notRequired=\"hi\" class=\"btn\"></p",
                         new MarkupBlock(
                             new MarkupTagHelperBlock(
                                 "p",
                                 attributes: new Dictionary<string, SyntaxTreeNode>
                                 {
-                                    ["random"] = factory.Markup("hi"),
+                                    ["notRequired"] = factory.Markup("hi"),
                                     ["class"] = factory.Markup("btn")
                                 })),
                         new[]
                         {
                             new RazorError(
                                 string.Format(CultureInfo.InvariantCulture, errorFormatNoCloseAngle, "p"),
-                                absoluteIndex: 27, lineIndex: 0, columnIndex: 27)
+                                absoluteIndex: 32, lineIndex: 0, columnIndex: 32)
                         }
                     },
                     {
@@ -794,12 +795,12 @@ namespace Microsoft.AspNet.Razor.Test.TagHelpers
                         }
                     },
                     {
-                        "<p random=\"hi\" class=\"btn\" <p>",
+                        "<p notRequired=\"hi\" class=\"btn\" <p>",
                         new MarkupBlock(
                             new MarkupTagHelperBlock("p",
                                 attributes: new Dictionary<string, SyntaxTreeNode>
                                 {
-                                    ["random"] = factory.Markup("hi"),
+                                    ["notRequired"] = factory.Markup("hi"),
                                     ["class"] = factory.Markup("btn")
                                 },
                                 children: blockFactory.MarkupTagBlock("<p>"))),
@@ -833,13 +834,13 @@ namespace Microsoft.AspNet.Razor.Test.TagHelpers
                         }
                     },
                     {
-                        "<p random=\"hi\" class=\"btn\" </p",
+                        "<p notRequired=\"hi\" class=\"btn\" </p",
                         new MarkupBlock(
                             new MarkupTagHelperBlock(
                                 "p",
                                 attributes: new Dictionary<string, SyntaxTreeNode>
                                 {
-                                    ["random"] = factory.Markup("hi"),
+                                    ["notRequired"] = factory.Markup("hi"),
                                     ["class"] = factory.Markup("btn")
                                 })),
                         new[]
@@ -849,7 +850,7 @@ namespace Microsoft.AspNet.Razor.Test.TagHelpers
                                 SourceLocation.Zero),
                             new RazorError(
                                 string.Format(CultureInfo.InvariantCulture, errorFormatNoCloseAngle, "p"),
-                                absoluteIndex: 27, lineIndex: 0, columnIndex: 27)
+                                absoluteIndex: 32, lineIndex: 0, columnIndex: 32)
                         }
                     },
                 };

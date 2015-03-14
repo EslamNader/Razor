@@ -26,13 +26,13 @@ namespace Microsoft.AspNet.Razor.TagHelpers
                     attributes: Enumerable.Empty<TagHelperAttributeDescriptor>(),
                     requiredAttributes: new[] { "class", "style" });
                 var catchAllDescriptor = new TagHelperDescriptor(
-                    tagName: "*",
+                    tagName: TagHelperDescriptorProvider.CatchAllDescriptorTarget,
                     typeName: "CatchAllTagHelper",
                     assemblyName: "SomeAssembly",
                     attributes: Enumerable.Empty<TagHelperAttributeDescriptor>(),
                     requiredAttributes: new[] { "class" });
                 var catchAllDescriptor2 = new TagHelperDescriptor(
-                    tagName: "*",
+                    tagName: TagHelperDescriptorProvider.CatchAllDescriptorTarget,
                     typeName: "CatchAllTagHelper",
                     assemblyName: "SomeAssembly",
                     attributes: Enumerable.Empty<TagHelperAttributeDescriptor>(),
@@ -43,38 +43,58 @@ namespace Microsoft.AspNet.Razor.TagHelpers
                 return new TheoryData<
                     string, // tagName
                     IEnumerable<string>, // providedAttributes
-                    IEnumerable<TagHelperDescriptor>, // expectedDescriptors
-                    IEnumerable<TagHelperDescriptor>> // availableDescriptors
+                    IEnumerable<TagHelperDescriptor>, // availableDescriptors
+                    IEnumerable<TagHelperDescriptor>> // expectedDescriptors
                 {
-                    { "div", new[] { "custom" }, new TagHelperDescriptor[0],  defaultAvailableDescriptors },
-                    { "div", new[] { "style" }, new[] { divDescriptor },  defaultAvailableDescriptors },
-                    { "div", new[] { "class" }, new[] { catchAllDescriptor },  defaultAvailableDescriptors },
+                    {
+                        "div",
+                        new[] { "custom" },
+                        defaultAvailableDescriptors,
+                        Enumerable.Empty<TagHelperDescriptor>()
+                    },
+                    { "div", new[] { "style" }, defaultAvailableDescriptors, new[] { divDescriptor } },
+                    { "div", new[] { "class" }, defaultAvailableDescriptors, new[] { catchAllDescriptor } },
                     {
                         "div",
                         new[] { "class", "style" },
-                        new[] { divDescriptor, catchAllDescriptor },
-                        defaultAvailableDescriptors
+                        defaultAvailableDescriptors,
+                        new[] { divDescriptor, catchAllDescriptor }
                     },
                     {
                         "div",
                         new[] { "class", "style", "custom" },
-                        new[] { divDescriptor, catchAllDescriptor, catchAllDescriptor2 },
-                        defaultAvailableDescriptors
+                        defaultAvailableDescriptors,
+                        new[] { divDescriptor, catchAllDescriptor, catchAllDescriptor2 }
                     },
                     {
                         "input",
                         new[] { "class", "style" },
-                        new[] { inputDescriptor, catchAllDescriptor },
-                        defaultAvailableDescriptors
+                        defaultAvailableDescriptors,
+                        new[] { inputDescriptor, catchAllDescriptor }
                     },
-                    { "*", new[] { "custom" }, new TagHelperDescriptor[0],  defaultAvailableDescriptors },
-                    { "*", new[] { "class" }, new[] { catchAllDescriptor },  defaultAvailableDescriptors },
-                    { "*", new[] { "class", "style" }, new[] { catchAllDescriptor }, defaultAvailableDescriptors },
                     {
-                        "*",
+                        TagHelperDescriptorProvider.CatchAllDescriptorTarget,
+                        new[] { "custom" },
+                        defaultAvailableDescriptors,
+                        Enumerable.Empty<TagHelperDescriptor>()
+                    },
+                    {
+                        TagHelperDescriptorProvider.CatchAllDescriptorTarget,
+                        new[] { "class" },
+                        defaultAvailableDescriptors,
+                        new[] { catchAllDescriptor }
+                    },
+                    {
+                        TagHelperDescriptorProvider.CatchAllDescriptorTarget,
+                        new[] { "class", "style" },
+                        defaultAvailableDescriptors,
+                        new[] { catchAllDescriptor }
+                    },
+                    {
+                        TagHelperDescriptorProvider.CatchAllDescriptorTarget,
                         new[] { "class", "custom" },
-                        new[] { catchAllDescriptor, catchAllDescriptor2 },
-                        defaultAvailableDescriptors
+                        defaultAvailableDescriptors,
+                        new[] { catchAllDescriptor, catchAllDescriptor2 }
                     },
                 };
             }
@@ -85,8 +105,8 @@ namespace Microsoft.AspNet.Razor.TagHelpers
         public void GetDescriptors_ReturnsDescriptorsWithRequiredAttributes(
             string tagName,
             IEnumerable<string> providedAttributes,
-            IEnumerable<TagHelperDescriptor> expectedDescriptors,
-            IEnumerable<TagHelperDescriptor> availableDescriptors)
+            IEnumerable<TagHelperDescriptor> availableDescriptors,
+            IEnumerable<TagHelperDescriptor> expectedDescriptors)
         {
             // Arrange
             var provider = new TagHelperDescriptorProvider(availableDescriptors);
@@ -102,7 +122,10 @@ namespace Microsoft.AspNet.Razor.TagHelpers
         public void GetDescriptors_ReturnsEmptyDescriptorsWithPrefixAsTagName()
         {
             // Arrange
-            var catchAllDescriptor = CreatePrefixedDescriptor("th", "*", "foo1");
+            var catchAllDescriptor = CreatePrefixedDescriptor(
+                "th",
+                TagHelperDescriptorProvider.CatchAllDescriptorTarget,
+                "foo1");
             var descriptors = new[] { catchAllDescriptor };
             var provider = new TagHelperDescriptorProvider(descriptors);
 
@@ -136,7 +159,7 @@ namespace Microsoft.AspNet.Razor.TagHelpers
         public void GetDescriptors_ReturnsCatchAllDescriptorsForPrefixedTags()
         {
             // Arrange
-            var catchAllDescriptor = CreatePrefixedDescriptor("th:", "*", "foo1");
+            var catchAllDescriptor = CreatePrefixedDescriptor("th:", TagHelperDescriptorProvider.CatchAllDescriptorTarget, "foo1");
             var descriptors = new[] { catchAllDescriptor };
             var provider = new TagHelperDescriptorProvider(descriptors);
 
@@ -206,12 +229,15 @@ namespace Microsoft.AspNet.Razor.TagHelpers
             // Arrange
             var divDescriptor = new TagHelperDescriptor("div", "foo1", "SomeAssembly");
             var spanDescriptor = new TagHelperDescriptor("span", "foo2", "SomeAssembly");
-            var catchAllDescriptor = new TagHelperDescriptor("*", "foo3", "SomeAssembly");
+            var catchAllDescriptor = new TagHelperDescriptor(
+                TagHelperDescriptorProvider.CatchAllDescriptorTarget,
+                "foo3",
+                "SomeAssembly");
             var descriptors = new TagHelperDescriptor[] { divDescriptor, spanDescriptor, catchAllDescriptor };
             var provider = new TagHelperDescriptorProvider(descriptors);
 
             // Act
-            var retrievedDescriptors = provider.GetDescriptors("*", attributeNames: Enumerable.Empty<string>());
+            var retrievedDescriptors = provider.GetDescriptors(TagHelperDescriptorProvider.CatchAllDescriptorTarget, attributeNames: Enumerable.Empty<string>());
 
             // Assert
             var descriptor = Assert.Single(retrievedDescriptors);
@@ -224,7 +250,10 @@ namespace Microsoft.AspNet.Razor.TagHelpers
             // Arrange
             var divDescriptor = new TagHelperDescriptor("div", "foo1", "SomeAssembly");
             var spanDescriptor = new TagHelperDescriptor("span", "foo2", "SomeAssembly");
-            var catchAllDescriptor = new TagHelperDescriptor("*", "foo3", "SomeAssembly");
+            var catchAllDescriptor = new TagHelperDescriptor(
+                TagHelperDescriptorProvider.CatchAllDescriptorTarget,
+                "foo3",
+                "SomeAssembly");
             var descriptors = new TagHelperDescriptor[] { divDescriptor, spanDescriptor, catchAllDescriptor };
             var provider = new TagHelperDescriptorProvider(descriptors);
 
@@ -263,10 +292,10 @@ namespace Microsoft.AspNet.Razor.TagHelpers
         private static TagHelperDescriptor CreatePrefixedDescriptor(string prefix, string tagName, string typeName)
         {
             return new TagHelperDescriptor(
-                prefix, 
-                tagName, 
-                typeName, 
-                assemblyName: "SomeAssembly", 
+                prefix,
+                tagName,
+                typeName,
+                assemblyName: "SomeAssembly",
                 attributes: Enumerable.Empty<TagHelperAttributeDescriptor>(),
                 requiredAttributes: Enumerable.Empty<string>());
         }

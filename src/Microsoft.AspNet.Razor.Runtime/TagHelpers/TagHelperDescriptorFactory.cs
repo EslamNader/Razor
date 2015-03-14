@@ -189,7 +189,7 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
                         errorSink.OnError(
                             SourceLocation.Zero,
                             Resources.FormatTargetElementAttribute_InvalidName(
-                                targetName.ToLowerInvariant(),
+                                targetName.ToLower(),
                                 name,
                                 character));
 

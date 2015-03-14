@@ -1241,7 +1241,7 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
 
             // Assert
             var descriptor = Assert.Single(descriptors);
-            Assert.Equal(Valid_PlainTagHelperDescriptor, descriptor, CompleteTagHelperDescriptorComparer.Default);
+            Assert.Equal(Valid_PlainTagHelperDescriptor, descriptor, CaseSensitiveTagHelperDescriptorComparer.Default);
         }
 
         [Fact]
@@ -1265,7 +1265,7 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
 
             // Assert
             Assert.Equal(descriptors.Length, 2);
-            Assert.Equal(expectedDescriptors, descriptors, CompleteTagHelperDescriptorComparer.Default);
+            Assert.Equal(expectedDescriptors, descriptors, CaseSensitiveTagHelperDescriptorComparer.Default);
         }
 
         [Fact]

@@ -14,14 +14,14 @@ namespace Microsoft.AspNet.Razor.Parser.TagHelpers.Internal
     public class TagHelperParseTreeRewriter : ISyntaxTreeRewriter
     {
         private TagHelperDescriptorProvider _provider;
-        private Stack<TagHelperBlockTracker> _tagStack;
+        private Stack<TagHelperBlockTracker> _trackerStack;
         private Stack<BlockBuilder> _blockStack;
         private BlockBuilder _currentBlock;
 
         public TagHelperParseTreeRewriter(TagHelperDescriptorProvider provider)
         {
             _provider = provider;
-            _tagStack = new Stack<TagHelperBlockTracker>();
+            _trackerStack = new Stack<TagHelperBlockTracker>();
             _blockStack = new Stack<BlockBuilder>();
         }
 
@@ -41,7 +41,7 @@ namespace Microsoft.AspNet.Razor.Parser.TagHelpers.Internal
                 CodeGenerator = input.CodeGenerator
             });
 
-            var activeTagHelpers = _tagStack.Count;
+            var activeTagHelpers = _trackerStack.Count;
 
             foreach (var child in input.Children)
             {
@@ -76,14 +76,14 @@ namespace Microsoft.AspNet.Razor.Parser.TagHelpers.Internal
 
             // We captured the number of active tag helpers at the start of our logic, it should be the same. If not
             // it means that there are malformed tag helpers at the top of our stack.
-            if (activeTagHelpers != _tagStack.Count)
+            if (activeTagHelpers != _trackerStack.Count)
             {
                 // Malformed tag helpers built here will be tag helpers that do not have end tags in the current block 
                 // scope. Block scopes are special cases in Razor such as @<p> would cause an error because there's no
                 // matching end </p> tag in the template block scope and therefore doesn't make sense as a tag helper.
-                BuildMalformedTagHelpers(_tagStack.Count - activeTagHelpers, context);
+                BuildMalformedTagHelpers(_trackerStack.Count - activeTagHelpers, context);
 
-                Debug.Assert(activeTagHelpers == _tagStack.Count);
+                Debug.Assert(activeTagHelpers == _trackerStack.Count);
             }
 
             BuildCurrentlyTrackedBlock();
@@ -107,13 +107,12 @@ namespace Microsoft.AspNet.Razor.Parser.TagHelpers.Internal
                 return false;
             }
 
-            var currentTagBlockTracker = _tagStack.Count > 0 ? _tagStack.Peek() : null;
-            var tagNameScope = currentTagBlockTracker?.Builder.TagName ?? string.Empty;
+            var tracker = _trackerStack.Count > 0 ? _trackerStack.Peek() : null;
+            var tagNameScope = tracker?.Builder.TagName ?? string.Empty;
 
             if (!IsEndTag(tagBlock))
             {
-                // We're in a begin tag block
-
+                // We're now in a begin tag block, we first need to see if the tag block is a tag helper.
                 var providedAttributes = GetAttributeNames(tagBlock);
 
                 descriptors = _provider.GetDescriptors(tagName, providedAttributes);
@@ -128,14 +127,13 @@ namespace Microsoft.AspNet.Razor.Parser.TagHelpers.Internal
                     // tag.
                     if (string.Equals(tagNameScope, tagName, StringComparison.OrdinalIgnoreCase))
                     {
-                        currentTagBlockTracker.OpenMatchingTags++;
+                        tracker.OpenMatchingTags++;
                     }
 
                     return false;
                 }
 
                 // We're in a begin TagHelper block.
-
                 var validTagStructure = ValidateTagStructure(tagName, tagBlock, context);
 
                 var builder = TagHelperBlockRewriter.Rewrite(tagName,
@@ -156,16 +154,14 @@ namespace Microsoft.AspNet.Razor.Parser.TagHelpers.Internal
             }
             else
             {
-                // We're in an end tag block.
-
                 // Validate that our end tag matches the currently scoped tag, if not we may need to error.
                 if (tagNameScope.Equals(tagName, StringComparison.OrdinalIgnoreCase))
                 {
                     // If there are additional end tags required before we can build our block it means we're in a
                     // situation like this: <myth req="..."><myth></myth></myth> where we're at the inside </myth>.
-                    if (currentTagBlockTracker.OpenMatchingTags > 0)
+                    if (tracker.OpenMatchingTags > 0)
                     {
-                        currentTagBlockTracker.OpenMatchingTags--;
+                        tracker.OpenMatchingTags--;
 
                         return false;
                     }
@@ -236,7 +232,7 @@ namespace Microsoft.AspNet.Razor.Parser.TagHelpers.Internal
                 var attributeName = childSpan
                     .Content
                     .Split(separator: new[] { '=' }, count: 2)[0]
-                    .Trim();
+                    .TrimStart();
 
                 attributeNames.Add(attributeName);
             }
@@ -303,7 +299,7 @@ namespace Microsoft.AspNet.Razor.Parser.TagHelpers.Internal
 
         private void BuildCurrentlyTrackedTagHelperBlock()
         {
-            _tagStack.Pop();
+            _trackerStack.Pop();
 
             BuildCurrentlyTrackedBlock();
         }
@@ -329,7 +325,7 @@ namespace Microsoft.AspNet.Razor.Parser.TagHelpers.Internal
 
         private void TrackTagHelperBlock(TagHelperBlockBuilder builder)
         {
-            _tagStack.Push(new TagHelperBlockTracker(builder));
+            _trackerStack.Push(new TagHelperBlockTracker(builder));
 
             TrackBlock(builder);
         }
@@ -338,9 +334,9 @@ namespace Microsoft.AspNet.Razor.Parser.TagHelpers.Internal
         {
             var malformedTagHelperCount = 0;
 
-            foreach (var tag in _tagStack)
+            foreach (var tracker in _trackerStack)
             {
-                if (tag.Builder.TagName.Equals(tagName, StringComparison.OrdinalIgnoreCase))
+                if (tracker.Builder.TagName.Equals(tagName, StringComparison.OrdinalIgnoreCase))
                 {
                     break;
                 }
@@ -350,7 +346,7 @@ namespace Microsoft.AspNet.Razor.Parser.TagHelpers.Internal
 
             // If the malformedTagHelperCount == _tagStack.Count it means we couldn't find a begin tag for the tag 
             // helper, can't recover.
-            if (malformedTagHelperCount != _tagStack.Count)
+            if (malformedTagHelperCount != _trackerStack.Count)
             {
                 BuildMalformedTagHelpers(malformedTagHelperCount, context);
 
@@ -369,7 +365,7 @@ namespace Microsoft.AspNet.Razor.Parser.TagHelpers.Internal
         {
             for (var i = 0; i < count; i++)
             {
-                var malformedTagHelper = _tagStack.Peek().Builder;
+                var malformedTagHelper = _trackerStack.Peek().Builder;
 
                 context.ErrorSink.OnError(
                     malformedTagHelper.Start,

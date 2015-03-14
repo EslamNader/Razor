@@ -173,7 +173,7 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
 
             // Assert
             Assert.Empty(errorSink.Errors);
-            Assert.Equal(expectedDescriptors, descriptors, CompleteTagHelperDescriptorComparer.Default);
+            Assert.Equal(expectedDescriptors, descriptors, CaseSensitiveTagHelperDescriptorComparer.Default);
         }
 
         public static TheoryData HtmlCaseData
@@ -223,6 +223,7 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
         public void CreateDescriptor_OverridesAttributeNameFromAttribute()
         {
             // Arrange
+            var errorSink = new ParserErrorSink();
             var validProperty1 = typeof(OverriddenAttributeTagHelper).GetProperty(
                 nameof(OverriddenAttributeTagHelper.ValidAttribute1));
             var validProperty2 = typeof(OverriddenAttributeTagHelper).GetProperty(
@@ -242,16 +243,18 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
             var descriptors = TagHelperDescriptorFactory.CreateDescriptors(
                 AssemblyName,
                 typeof(OverriddenAttributeTagHelper),
-                new ParserErrorSink());
+                errorSink);
 
             // Assert
-            Assert.Equal(expectedDescriptors, descriptors, CompleteTagHelperDescriptorComparer.Default);
+            Assert.Empty(errorSink.Errors);
+            Assert.Equal(expectedDescriptors, descriptors, CaseSensitiveTagHelperDescriptorComparer.Default);
         }
 
         [Fact]
         public void CreateDescriptor_DoesNotInheritOverridenAttributeName()
         {
             // Arrange
+            var errorSink = new ParserErrorSink();
             var validProperty1 = typeof(InheritedOverriddenAttributeTagHelper).GetProperty(
                 nameof(InheritedOverriddenAttributeTagHelper.ValidAttribute1));
             var validProperty2 = typeof(InheritedOverriddenAttributeTagHelper).GetProperty(
@@ -272,16 +275,18 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
             var descriptors = TagHelperDescriptorFactory.CreateDescriptors(
                 AssemblyName,
                 typeof(InheritedOverriddenAttributeTagHelper),
-                new ParserErrorSink());
+                errorSink);
 
             // Assert
-            Assert.Equal(expectedDescriptors, descriptors, CompleteTagHelperDescriptorComparer.Default);
+            Assert.Empty(errorSink.Errors);
+            Assert.Equal(expectedDescriptors, descriptors, CaseSensitiveTagHelperDescriptorComparer.Default);
         }
 
         [Fact]
         public void CreateDescriptor_AllowsOverridenAttributeNameOnUnimplementedVirtual()
         {
             // Arrange
+            var errorSink = new ParserErrorSink();
             var validProperty1 = typeof(InheritedNotOverriddenAttributeTagHelper).GetProperty(
                 nameof(InheritedNotOverriddenAttributeTagHelper.ValidAttribute1));
             var validProperty2 = typeof(InheritedNotOverriddenAttributeTagHelper).GetProperty(
@@ -301,16 +306,18 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
             var descriptors = TagHelperDescriptorFactory.CreateDescriptors(
                 AssemblyName,
                 typeof(InheritedNotOverriddenAttributeTagHelper),
-                new ParserErrorSink());
+                errorSink);
 
             // Assert
-            Assert.Equal(expectedDescriptors, descriptors, CompleteTagHelperDescriptorComparer.Default);
+            Assert.Empty(errorSink.Errors);
+            Assert.Equal(expectedDescriptors, descriptors, CaseSensitiveTagHelperDescriptorComparer.Default);
         }
 
         [Fact]
         public void CreateDescriptor_BuildsDescriptorsFromSimpleTypes()
         {
             // Arrange
+            var errorSink = new ParserErrorSink();
             var objectAssemblyName = typeof(object).GetTypeInfo().Assembly.GetName().Name;
             var expectedDescriptor =
                 new TagHelperDescriptor("object", "System.Object", objectAssemblyName);
@@ -319,17 +326,19 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
             var descriptors = TagHelperDescriptorFactory.CreateDescriptors(
                 objectAssemblyName,
                 typeof(object),
-                new ParserErrorSink());
+                errorSink);
 
             // Assert
+            Assert.Empty(errorSink.Errors);
             var descriptor = Assert.Single(descriptors);
-            Assert.Equal(expectedDescriptor, descriptor, CompleteTagHelperDescriptorComparer.Default);
+            Assert.Equal(expectedDescriptor, descriptor, CaseSensitiveTagHelperDescriptorComparer.Default);
         }
 
         [Fact]
         public void CreateDescriptor_BuildsDescriptorsWithInheritedProperties()
         {
             // Arrange
+            var errorSink = new ParserErrorSink();
             var intProperty = typeof(InheritedSingleAttributeTagHelper).GetProperty(
                 nameof(InheritedSingleAttributeTagHelper.IntAttribute));
             var expectedDescriptor = new TagHelperDescriptor(
@@ -344,17 +353,19 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
             var descriptors = TagHelperDescriptorFactory.CreateDescriptors(
                 AssemblyName,
                 typeof(InheritedSingleAttributeTagHelper),
-                new ParserErrorSink());
+                errorSink);
 
             // Assert
+            Assert.Empty(errorSink.Errors);
             var descriptor = Assert.Single(descriptors);
-            Assert.Equal(expectedDescriptor, descriptor, CompleteTagHelperDescriptorComparer.Default);
+            Assert.Equal(expectedDescriptor, descriptor, CaseSensitiveTagHelperDescriptorComparer.Default);
         }
 
         [Fact]
         public void CreateDescriptor_BuildsDescriptorsWithConventionNames()
         {
             // Arrange
+            var errorSink = new ParserErrorSink();
             var intProperty = typeof(SingleAttributeTagHelper).GetProperty(nameof(SingleAttributeTagHelper.IntAttribute));
             var expectedDescriptor = new TagHelperDescriptor(
                 "single-attribute",
@@ -371,14 +382,16 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
                 new ParserErrorSink());
 
             // Assert
+            Assert.Empty(errorSink.Errors);
             var descriptor = Assert.Single(descriptors);
-            Assert.Equal(expectedDescriptor, descriptor, CompleteTagHelperDescriptorComparer.Default);
+            Assert.Equal(expectedDescriptor, descriptor, CaseSensitiveTagHelperDescriptorComparer.Default);
         }
 
         [Fact]
         public void CreateDescriptor_OnlyAcceptsPropertiesWithGetAndSet()
         {
             // Arrange
+            var errorSink = new ParserErrorSink();
             var validProperty = typeof(MissingAccessorTagHelper).GetProperty(
                 nameof(MissingAccessorTagHelper.ValidAttribute));
             var expectedDescriptor = new TagHelperDescriptor(
@@ -393,17 +406,19 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
             var descriptors = TagHelperDescriptorFactory.CreateDescriptors(
                 AssemblyName,
                 typeof(MissingAccessorTagHelper),
-                new ParserErrorSink());
+                errorSink);
 
             // Assert
+            Assert.Empty(errorSink.Errors);
             var descriptor = Assert.Single(descriptors);
-            Assert.Equal(expectedDescriptor, descriptor, CompleteTagHelperDescriptorComparer.Default);
+            Assert.Equal(expectedDescriptor, descriptor, CaseSensitiveTagHelperDescriptorComparer.Default);
         }
 
         [Fact]
         public void CreateDescriptor_OnlyAcceptsPropertiesWithPublicGetAndSet()
         {
             // Arrange
+            var errorSink = new ParserErrorSink();
             var validProperty = typeof(PrivateAccessorTagHelper).GetProperty(
                 nameof(PrivateAccessorTagHelper.ValidAttribute));
             var expectedDescriptor = new TagHelperDescriptor(
@@ -419,17 +434,19 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
             var descriptors = TagHelperDescriptorFactory.CreateDescriptors(
                 AssemblyName,
                 typeof(PrivateAccessorTagHelper),
-                new ParserErrorSink());
+                errorSink);
 
             // Assert
+            Assert.Empty(errorSink.Errors);
             var descriptor = Assert.Single(descriptors);
-            Assert.Equal(expectedDescriptor, descriptor, CompleteTagHelperDescriptorComparer.Default);
+            Assert.Equal(expectedDescriptor, descriptor, CaseSensitiveTagHelperDescriptorComparer.Default);
         }
 
         [Fact]
         public void CreateDescriptor_ResolvesMultipleTagHelperDescriptorsFromSingleType()
         {
             // Arrange
+            var errorSink = new ParserErrorSink();
             var validProp = typeof(MultiTagTagHelper).GetProperty(nameof(MultiTagTagHelper.ValidAttribute));
             var expectedDescriptors = new[] {
                 new TagHelperDescriptor(
@@ -452,16 +469,18 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
             var descriptors = TagHelperDescriptorFactory.CreateDescriptors(
                 AssemblyName,
                 typeof(MultiTagTagHelper),
-                new ParserErrorSink());
+                errorSink);
 
             // Assert
-            Assert.Equal(expectedDescriptors, descriptors, CompleteTagHelperDescriptorComparer.Default);
+            Assert.Empty(errorSink.Errors);
+            Assert.Equal(expectedDescriptors, descriptors, CaseSensitiveTagHelperDescriptorComparer.Default);
         }
 
         [Fact]
         public void CreateDescriptor_DoesntResolveInheritedTagNames()
         {
             // Arrange
+            var errorSink = new ParserErrorSink();
             var validProp = typeof(InheritedMultiTagTagHelper).GetProperty(nameof(InheritedMultiTagTagHelper.ValidAttribute));
             var expectedDescriptor = new TagHelperDescriptor(
                     "inherited-multi-tag",
@@ -475,17 +494,19 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
             var descriptors = TagHelperDescriptorFactory.CreateDescriptors(
                 AssemblyName,
                 typeof(InheritedMultiTagTagHelper),
-                new ParserErrorSink());
+                errorSink);
 
             // Assert
+            Assert.Empty(errorSink.Errors);
             var descriptor = Assert.Single(descriptors);
-            Assert.Equal(expectedDescriptor, descriptor, CompleteTagHelperDescriptorComparer.Default);
+            Assert.Equal(expectedDescriptor, descriptor, CaseSensitiveTagHelperDescriptorComparer.Default);
         }
 
         [Fact]
         public void CreateDescriptor_IgnoresDuplicateTagNamesFromAttribute()
         {
             // Arrange
+            var errorSink = new ParserErrorSink();
             var expectedDescriptors = new[] {
                 new TagHelperDescriptor(
                     "p",
@@ -501,16 +522,18 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
             var descriptors = TagHelperDescriptorFactory.CreateDescriptors(
                 AssemblyName,
                 typeof(DuplicateTagNameTagHelper),
-                new ParserErrorSink());
+                errorSink);
 
             // Assert
-            Assert.Equal(expectedDescriptors, descriptors, CompleteTagHelperDescriptorComparer.Default);
+            Assert.Empty(errorSink.Errors);
+            Assert.Equal(expectedDescriptors, descriptors, CaseSensitiveTagHelperDescriptorComparer.Default);
         }
 
         [Fact]
         public void CreateDescriptor_OverridesTagNameFromAttribute()
         {
             // Arrange
+            var errorSink = new ParserErrorSink();
             var expectedDescriptors = new[] {
                 new TagHelperDescriptor("data-condition",
                                         typeof(OverrideNameTagHelper).FullName,
@@ -521,16 +544,18 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
             var descriptors = TagHelperDescriptorFactory.CreateDescriptors(
                 AssemblyName,
                 typeof(OverrideNameTagHelper),
-                new ParserErrorSink());
+                errorSink);
 
             // Assert
-            Assert.Equal(expectedDescriptors, descriptors, CompleteTagHelperDescriptorComparer.Default);
+            Assert.Empty(errorSink.Errors);
+            Assert.Equal(expectedDescriptors, descriptors, CaseSensitiveTagHelperDescriptorComparer.Default);
         }
 
         [Fact]
         public void CreateDescriptor_GetsTagNamesFromMultipleAttributes()
         {
             // Arrange
+            var errorSink = new ParserErrorSink();
             var expectedDescriptors = new[] {
                 new TagHelperDescriptor(
                     "span",
@@ -550,10 +575,11 @@ namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
             var descriptors = TagHelperDescriptorFactory.CreateDescriptors(
                 AssemblyName,
                 typeof(MultipleAttributeTagHelper),
-                new ParserErrorSink());
+                errorSink);
 
             // Assert
-            Assert.Equal(expectedDescriptors, descriptors, CompleteTagHelperDescriptorComparer.Default);
+            Assert.Empty(errorSink.Errors);
+            Assert.Equal(expectedDescriptors, descriptors, CaseSensitiveTagHelperDescriptorComparer.Default);
         }
 
         public static TheoryData InvalidNameData

@@ -9,54 +9,60 @@ using Microsoft.Internal.Web.Utils;
 
 namespace Microsoft.AspNet.Razor.Runtime.TagHelpers
 {
-    public class CompleteTagHelperDescriptorComparer : TagHelperDescriptorComparer, IEqualityComparer<TagHelperDescriptor>
+    public class CaseSensitiveTagHelperDescriptorComparer : TagHelperDescriptorComparer, IEqualityComparer<TagHelperDescriptor>
     {
-        public new static readonly CompleteTagHelperDescriptorComparer Default =
-            new CompleteTagHelperDescriptorComparer();
+        public new static readonly CaseSensitiveTagHelperDescriptorComparer Default =
+            new CaseSensitiveTagHelperDescriptorComparer();
 
-        private CompleteTagHelperDescriptorComparer()
+        private CaseSensitiveTagHelperDescriptorComparer()
         {
         }
 
         bool IEqualityComparer<TagHelperDescriptor>.Equals(TagHelperDescriptor descriptorX, TagHelperDescriptor descriptorY)
         {
             return base.Equals(descriptorX, descriptorY) &&
-                   // Tests should be exact casing
-                   string.Equals(descriptorX.TagName, descriptorY.TagName, StringComparison.Ordinal) &&
-                   string.Equals(descriptorX.Prefix, descriptorY.Prefix, StringComparison.Ordinal) &&
-                   Enumerable.SequenceEqual(
-                       descriptorX.RequiredAttributes,
-                       descriptorY.RequiredAttributes,
-                       StringComparer.OrdinalIgnoreCase) &&
-                   descriptorX.Attributes.SequenceEqual(
-                       descriptorY.Attributes,
-                        CompleteTagHelperAttributeDescriptorComparer.Default);
+                // Normal comparer doesn't care about case, in tests we do.
+                string.Equals(descriptorX.TagName, descriptorY.TagName, StringComparison.Ordinal) &&
+                string.Equals(descriptorX.Prefix, descriptorY.Prefix, StringComparison.Ordinal) &&
+                Enumerable.SequenceEqual(
+                    descriptorX.RequiredAttributes,
+                    descriptorY.RequiredAttributes,
+                    StringComparer.OrdinalIgnoreCase) &&
+                descriptorX.Attributes.SequenceEqual(
+                    descriptorY.Attributes,
+                    CaseSensitiveAttributeDescriptorComparer.Default);
         }
 
         int IEqualityComparer<TagHelperDescriptor>.GetHashCode(TagHelperDescriptor descriptor)
         {
-            return HashCodeCombiner
+            var hashCodeCombiner = HashCodeCombiner
                 .Start()
                 .Add(base.GetHashCode())
                 .Add(descriptor.TagName, StringComparer.Ordinal)
                 .Add(descriptor.Prefix)
-                .Add(descriptor.Attributes)
-                .CombinedHash;
+                .Add(descriptor.Attributes);
+
+            foreach (var attribute in descriptor.Attributes)
+            {
+                hashCodeCombiner.Add(CaseSensitiveAttributeDescriptorComparer.Default.GetHashCode(attribute));
+            }
+
+            return hashCodeCombiner.CombinedHash;
         }
 
-        private class CompleteTagHelperAttributeDescriptorComparer : IEqualityComparer<TagHelperAttributeDescriptor>
+        private class CaseSensitiveAttributeDescriptorComparer : IEqualityComparer<TagHelperAttributeDescriptor>
         {
-            public static readonly CompleteTagHelperAttributeDescriptorComparer Default =
-                new CompleteTagHelperAttributeDescriptorComparer();
+            public static readonly CaseSensitiveAttributeDescriptorComparer Default =
+                new CaseSensitiveAttributeDescriptorComparer();
 
-            private CompleteTagHelperAttributeDescriptorComparer()
+            private CaseSensitiveAttributeDescriptorComparer()
             {
             }
 
             public bool Equals(TagHelperAttributeDescriptor descriptorX, TagHelperAttributeDescriptor descriptorY)
             {
                 return
-                    // Tests should be exact casing
+                    // Normal comparer doesn't care about case, in tests we do.
                     string.Equals(descriptorX.Name, descriptorY.Name, StringComparison.Ordinal) &&
                     string.Equals(descriptorX.PropertyName, descriptorY.PropertyName, StringComparison.Ordinal) &&
                     string.Equals(descriptorX.TypeName, descriptorY.TypeName, StringComparison.Ordinal);
